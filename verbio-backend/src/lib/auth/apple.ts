@@ -42,7 +42,9 @@ async function getApplePublicKey(kid: string): Promise<jose.KeyLike> {
     throw new UnauthorizedError('Invalid Apple identity token: key not found')
   }
 
-  return jose.importJWK(key, 'RS256')
+  // importJWK returns KeyLike | Uint8Array, but RS256 always returns KeyLike
+  const publicKey = await jose.importJWK(key, 'RS256')
+  return publicKey as jose.KeyLike
 }
 
 // Verify Apple identity token

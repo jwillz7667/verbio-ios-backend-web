@@ -98,16 +98,20 @@ struct AppRouterView: View {
 
     private var splashView: some View {
         ZStack {
-            colors.backgrounds.primary
+            Color(hex: "FFFEF7")
                 .ignoresSafeArea()
 
-            VStack(spacing: VerbioSpacing.lg) {
+            VStack(spacing: 16) {
                 Image(systemName: "waveform.circle.fill")
                     .font(.system(size: 80, weight: .regular))
-                    .foregroundStyle(colors.brand.primary)
+                    .foregroundColor(Color(hex: "F59E0B"))
 
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: colors.brand.primary))
+                    .tint(Color(hex: "F59E0B"))
+
+                Text("Loading...")
+                    .font(.caption)
+                    .foregroundColor(Color(hex: "57534E"))
             }
         }
     }

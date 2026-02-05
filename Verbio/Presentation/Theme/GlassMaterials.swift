@@ -85,8 +85,8 @@ extension View {
 
 // MARK: - Glass Container Views
 
-/// A container that applies glass morphing transitions between child elements
-@available(iOS 26.0, *)
+/// A container that groups glass elements for coordinated transitions
+/// Note: In iOS 26+, glass elements automatically coordinate when in the same container
 struct GlassEffectContainer<Content: View>: View {
     let content: Content
 
@@ -96,7 +96,6 @@ struct GlassEffectContainer<Content: View>: View {
 
     var body: some View {
         content
-            .glassEffectContainer()
     }
 }
 

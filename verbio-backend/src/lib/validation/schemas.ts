@@ -40,6 +40,45 @@ export const preferencesUpdateSchema = z.object({
 
 export type PreferencesUpdateInput = z.infer<typeof preferencesUpdateSchema>
 
+// Valid language codes
+const languageCodes = ['EN', 'ES', 'FR', 'DE', 'IT', 'PT', 'ZH', 'JA', 'KO', 'AR', 'HI', 'RU'] as const
+
+// Translation request schema
+export const translateRequestSchema = z.object({
+  audio: z.string().min(1, 'Audio data is required'),
+  sourceLanguage: z.enum(languageCodes).optional(),
+  targetLanguage: z.enum(languageCodes, {
+    required_error: 'Target language is required',
+    invalid_type_error: 'Invalid target language',
+  }),
+  conversationId: z.string().uuid().optional(),
+  voiceId: z.string().optional(),
+  speaker: z.enum(['USER', 'OTHER']).optional().default('USER'),
+})
+
+export type TranslateRequestInput = z.infer<typeof translateRequestSchema>
+
+// Conversation create schema
+export const conversationCreateSchema = z.object({
+  title: z.string().max(200).optional(),
+  sourceLanguage: z.enum(languageCodes),
+  targetLanguage: z.enum(languageCodes),
+})
+
+export type ConversationCreateInput = z.infer<typeof conversationCreateSchema>
+
+// Voice preference update schema
+export const voicePreferenceSchema = z.object({
+  preferredVoiceId: z.string().min(1).optional(),
+  voiceName: z.string().max(100).optional(),
+  speechRate: z.number().min(0.5).max(2.0).optional(),
+  defaultSourceLang: z.enum(languageCodes).optional(),
+  defaultTargetLang: z.enum(languageCodes).optional(),
+  autoDetectSource: z.boolean().optional(),
+})
+
+export type VoicePreferenceInput = z.infer<typeof voicePreferenceSchema>
+
 // Validate request body helper
 export async function validateBody<T>(
   request: Request,

@@ -94,8 +94,10 @@ enum UserEndpoint: APIEndpoint {
         switch self {
         case .profile, .preferences, .usage:
             return .get
-        case .updateProfile, .updatePreferences:
+        case .updateProfile:
             return .patch
+        case .updatePreferences:
+            return .put
         }
     }
 }
@@ -143,7 +145,7 @@ enum ConversationEndpoint: APIEndpoint {
     case get(id: String)
     case update(id: String)
     case delete(id: String)
-    case messages(id: String)
+    case messages(conversationId: String)
 
     var path: String {
         switch self {
@@ -151,8 +153,8 @@ enum ConversationEndpoint: APIEndpoint {
             return "/api/conversations"
         case .get(let id), .update(let id), .delete(let id):
             return "/api/conversations/\(id)"
-        case .messages(let id):
-            return "/api/conversations/\(id)/messages"
+        case .messages(let conversationId):
+            return "/api/conversations/\(conversationId)/messages"
         }
     }
 

@@ -17,19 +17,47 @@ enum SubscriptionTier {
   ENTERPRISE
 }
 
+// Supported languages for translation
+enum Language {
+  EN // English
+  ES // Spanish
+  FR // French
+  DE // German
+  IT // Italian
+  PT // Portuguese
+  ZH // Chinese (Mandarin)
+  JA // Japanese
+  KO // Korean
+  AR // Arabic
+  HI // Hindi
+  RU // Russian
+}
+
+// Speaker identifier in conversation
+enum Speaker {
+  USER
+  OTHER
+}
+
 // User model
 model User {
-  id               String           @id @default(uuid()) @db.Uuid
-  appleUserId      String           @unique @map("apple_user_id")
-  email            String           @unique
-  firstName        String?          @map("first_name")
-  lastName         String?          @map("last_name")
-  subscriptionTier SubscriptionTier @default(FREE) @map("subscription_tier")
-  createdAt        DateTime         @default(now()) @map("created_at")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
+  id                 String           @id @default(uuid()) @db.Uuid
+  appleUserId        String           @unique @map("apple_user_id")
+  email              String           @unique
+  firstName          String?          @map("first_name")
+  lastName           String?          @map("last_name")
+  subscriptionTier   SubscriptionTier @default(FREE) @map("subscription_tier")
+  dailyTranslations  Int              @default(0) @map("daily_translations")
+  totalTranslations  Int              @default(0) @map("total_translations")
+  lastUsageReset     DateTime         @default(now()) @map("last_usage_reset")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
 
   // Relations
-  refreshTokens RefreshToken[]
+  refreshTokens   RefreshToken[]
+  conversations   Conversation[]
+  voicePreference VoicePreference?
+  usageRecords    UsageRecord[]
 
   @@map("users")
 }
@@ -50,4 +78,84 @@ model RefreshToken {
   @@index([userId])
   @@index([family])
   @@map("refresh_tokens")
+}
+
+// User voice preferences for TTS
+model VoicePreference {
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @unique @map("user_id") @db.Uuid
+  preferredVoiceId  String   @map("preferred_voice_id")
+  voiceName         String   @map("voice_name")
+  speechRate        Float    @default(1.0) @map("speech_rate")
+  defaultSourceLang Language @default(EN) @map("default_source_lang")
+  defaultTargetLang Language @default(ES) @map("default_target_lang")
+  autoDetectSource  Boolean  @default(true) @map("auto_detect_source")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("voice_preferences")
+}
+
+// Conversation for grouping related translations
+model Conversation {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  title          String?
+  sourceLanguage Language @map("source_language")
+  targetLanguage Language @map("target_language")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId])
+  @@map("conversations")
+}
+
+// Individual translation message within a conversation
+model Message {
+  id                 String       @id @default(uuid()) @db.Uuid
+  conversationId     String       @map("conversation_id") @db.Uuid
+  speaker            Speaker
+  originalText       String       @map("original_text") @db.Text
+  translatedText     String       @map("translated_text") @db.Text
+  sourceLanguage     Language     @map("source_language")
+  targetLanguage     Language     @map("target_language")
+  originalAudioUrl   String?      @map("original_audio_url")
+  translatedAudioUrl String?      @map("translated_audio_url")
+  durationMs         Int?         @map("duration_ms")
+  confidence         Float?
+  createdAt          DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+// Daily usage tracking for rate limiting and analytics
+model UsageRecord {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  date          DateTime @db.Date
+  translations  Int      @default(0)
+  audioMinutes  Float    @default(0) @map("audio_minutes")
+  ttsCharacters Int      @default(0) @map("tts_characters")
+  estimatedCost Float    @default(0) @map("estimated_cost")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("usage_records")
 }

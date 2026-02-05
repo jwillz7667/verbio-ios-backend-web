@@ -136,12 +136,14 @@ struct MainTabView: View {
                     Label("Home", systemImage: "house.fill")
                 }
 
-            // Placeholder for Translation screen (Phase 2)
-            PlaceholderView(title: "Translation", icon: "mic.fill")
-                .tag(AppRoute.translation)
-                .tabItem {
-                    Label("Translate", systemImage: "mic.fill")
-                }
+            // Translation screen
+            NavigationStack {
+                TranslationView()
+            }
+            .tag(AppRoute.translation)
+            .tabItem {
+                Label("Translate", systemImage: "mic.fill")
+            }
 
             // Placeholder for History screen (Phase 2)
             PlaceholderView(title: "History", icon: "clock.fill")

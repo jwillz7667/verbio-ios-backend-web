@@ -120,6 +120,33 @@ final class DependencyContainer: @unchecked Sendable {
                 keychainService: DependencyContainer.shared.resolve(KeychainServiceProtocol.self)
             )
         }
+
+        // Audio Service
+        registerSingleton(AudioServiceProtocol.self) {
+            AudioService()
+        }
+
+        // Translation Repository
+        registerSingleton(TranslationRepositoryProtocol.self) {
+            TranslationRepository(
+                networkClient: DependencyContainer.shared.resolve(NetworkClientProtocol.self)
+            )
+        }
+
+        // Conversation Repository
+        registerSingleton(ConversationRepositoryProtocol.self) {
+            ConversationRepository(
+                networkClient: DependencyContainer.shared.resolve(NetworkClientProtocol.self)
+            )
+        }
+
+        // Translation Service
+        registerSingleton(TranslationServiceProtocol.self) {
+            TranslationService(
+                translationRepository: DependencyContainer.shared.resolve(TranslationRepositoryProtocol.self),
+                audioService: DependencyContainer.shared.resolve(AudioServiceProtocol.self)
+            )
+        }
     }
 
     // MARK: - Testing Support
@@ -141,4 +168,8 @@ enum ContainerKey {
     static let networkClient = "NetworkClientProtocol"
     static let authRepository = "AuthRepositoryProtocol"
     static let authService = "AuthServiceProtocol"
+    static let audioService = "AudioServiceProtocol"
+    static let translationRepository = "TranslationRepositoryProtocol"
+    static let conversationRepository = "ConversationRepositoryProtocol"
+    static let translationService = "TranslationServiceProtocol"
 }

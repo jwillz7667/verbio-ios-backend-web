@@ -40,6 +40,19 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
             return Int.max
         }
     }
+
+    var dailyLimit: Int {
+        switch self {
+        case .free:
+            return 10
+        case .basic:
+            return 50
+        case .pro:
+            return 200
+        case .enterprise:
+            return Int.max
+        }
+    }
 }
 
 // MARK: - User Model

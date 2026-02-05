@@ -84,6 +84,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<AuthRespo
       firstName: user.firstName,
       lastName: user.lastName,
       subscriptionTier: user.subscriptionTier,
+      dailyTranslations: user.dailyTranslations,
+      totalTranslations: user.totalTranslations,
+      lastUsageReset: user.lastUsageReset,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     }

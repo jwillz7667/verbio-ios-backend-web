@@ -20,6 +20,7 @@ final class DependencyContainer: @unchecked Sendable {
 
     private var factories: [String: () -> Any] = [:]
     private var singletons: [String: Any] = [:]
+    private var singletonKeys: Set<String> = []  // Track which keys should be singletons
     private let lock = NSLock()
 
     // MARK: - Initialization
@@ -38,12 +39,14 @@ final class DependencyContainer: @unchecked Sendable {
         factories[key] = factory
     }
 
-    /// Register a singleton instance
+    /// Register a singleton instance (lazy initialization to avoid recursive access)
     func registerSingleton<T>(_ type: T.Type, factory: @escaping () -> T) {
         let key = String(describing: type)
         lock.lock()
         defer { lock.unlock() }
-        singletons[key] = factory()
+        // Store factory for lazy initialization to avoid recursive access during init
+        factories[key] = factory
+        singletonKeys.insert(key)
     }
 
     /// Register an existing instance as a singleton
@@ -60,18 +63,35 @@ final class DependencyContainer: @unchecked Sendable {
     func resolve<T>(_ type: T.Type) -> T {
         let key = String(describing: type)
         lock.lock()
-        defer { lock.unlock() }
 
-        // Check singletons first
+        // Check singletons cache first
         if let singleton = singletons[key] as? T {
+            lock.unlock()
             return singleton
         }
 
         // Check factories
-        if let factory = factories[key], let instance = factory() as? T {
-            return instance
+        if let factory = factories[key] {
+            // For singletons, create and cache the instance
+            if singletonKeys.contains(key) {
+                lock.unlock()  // Unlock before calling factory to avoid deadlock
+                let instance = factory()
+                lock.lock()
+                // Double-check another thread didn't create it
+                if let existingSingleton = singletons[key] as? T {
+                    lock.unlock()
+                    return existingSingleton
+                }
+                singletons[key] = instance
+                lock.unlock()
+                return instance as! T
+            } else {
+                lock.unlock()
+                return factory() as! T
+            }
         }
 
+        lock.unlock()
         fatalError("No registered dependency for type: \(key)")
     }
 
@@ -79,16 +99,34 @@ final class DependencyContainer: @unchecked Sendable {
     func resolveOptional<T>(_ type: T.Type) -> T? {
         let key = String(describing: type)
         lock.lock()
-        defer { lock.unlock() }
 
+        // Check singletons cache first
         if let singleton = singletons[key] as? T {
+            lock.unlock()
             return singleton
         }
 
-        if let factory = factories[key], let instance = factory() as? T {
-            return instance
+        // Check factories
+        if let factory = factories[key] {
+            // For singletons, create and cache the instance
+            if singletonKeys.contains(key) {
+                lock.unlock()
+                let instance = factory()
+                lock.lock()
+                if let existingSingleton = singletons[key] as? T {
+                    lock.unlock()
+                    return existingSingleton
+                }
+                singletons[key] = instance
+                lock.unlock()
+                return instance as? T
+            } else {
+                lock.unlock()
+                return factory() as? T
+            }
         }
 
+        lock.unlock()
         return nil
     }
 
@@ -157,6 +195,7 @@ final class DependencyContainer: @unchecked Sendable {
         defer { lock.unlock() }
         factories.removeAll()
         singletons.removeAll()
+        singletonKeys.removeAll()
         registerDefaults()
     }
 }

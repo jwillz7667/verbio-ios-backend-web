@@ -291,14 +291,20 @@ actor AudioService: AudioServiceProtocol {
 
     func audioLevelStream() -> AsyncStream<Float> {
         AsyncStream { continuation in
-            self.levelContinuation = continuation
+            Task { [weak self] in
+                await self?.setLevelContinuation(continuation)
+            }
 
             continuation.onTermination = { @Sendable _ in
-                Task {
-                    await self.clearLevelContinuation()
+                Task { [weak self] in
+                    await self?.clearLevelContinuation()
                 }
             }
         }
+    }
+
+    private func setLevelContinuation(_ continuation: AsyncStream<Float>.Continuation) {
+        self.levelContinuation = continuation
     }
 
     private func clearLevelContinuation() {

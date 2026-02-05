@@ -1,0 +1,204 @@
+//
+//  AppRouter.swift
+//  Verbio
+//
+//  Main app navigation router
+//
+
+import SwiftUI
+
+// MARK: - App Route
+
+enum AppRoute: Hashable {
+    case signIn
+    case home
+    case translation
+    case conversation
+    case history
+    case settings
+}
+
+// MARK: - Auth State
+
+@MainActor
+@Observable
+final class AuthState {
+
+    // MARK: - Properties
+
+    private(set) var isAuthenticated = false
+    private(set) var isCheckingAuth = true
+    private(set) var currentUser: User?
+
+    private let authService: AuthServiceProtocol
+
+    // MARK: - Initialization
+
+    init(authService: AuthServiceProtocol? = nil) {
+        self.authService = authService ?? DependencyContainer.shared.resolve(AuthServiceProtocol.self)
+    }
+
+    // MARK: - Methods
+
+    func checkAuthStatus() async {
+        isCheckingAuth = true
+        defer { isCheckingAuth = false }
+
+        isAuthenticated = await authService.checkAuthStatus()
+
+        if isAuthenticated {
+            currentUser = await authService.currentUser
+        }
+    }
+
+    func signIn(user: User) {
+        currentUser = user
+        isAuthenticated = true
+    }
+
+    func signOut() async {
+        try? await authService.logout()
+        currentUser = nil
+        isAuthenticated = false
+    }
+}
+
+// MARK: - App Router View
+
+struct AppRouterView: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    @State private var authState = AuthState()
+
+    var colors: VerbioColorScheme {
+        VerbioColorScheme(colorScheme: colorScheme)
+    }
+
+    var body: some View {
+        Group {
+            if authState.isCheckingAuth {
+                // Loading state
+                splashView
+            } else if authState.isAuthenticated {
+                // Authenticated - show main app
+                MainTabView()
+                    .environment(authState)
+            } else {
+                // Not authenticated - show sign in
+                SignInView()
+                    .environment(authState)
+            }
+        }
+        .animation(VerbioAnimations.Spring.smooth, value: authState.isAuthenticated)
+        .animation(VerbioAnimations.Spring.smooth, value: authState.isCheckingAuth)
+        .task {
+            await authState.checkAuthStatus()
+        }
+    }
+
+    private var splashView: some View {
+        ZStack {
+            colors.backgrounds.primary
+                .ignoresSafeArea()
+
+            VStack(spacing: VerbioSpacing.lg) {
+                Image(systemName: "waveform.circle.fill")
+                    .font(.system(size: 80, weight: .regular))
+                    .foregroundStyle(colors.brand.primary)
+
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: colors.brand.primary))
+            }
+        }
+    }
+}
+
+// MARK: - Main Tab View
+
+struct MainTabView: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    @State private var selectedTab: AppRoute = .home
+
+    var colors: VerbioColorScheme {
+        VerbioColorScheme(colorScheme: colorScheme)
+    }
+
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            HomeView()
+                .tag(AppRoute.home)
+                .tabItem {
+                    Label("Home", systemImage: "house.fill")
+                }
+
+            // Placeholder for Translation screen (Phase 2)
+            PlaceholderView(title: "Translation", icon: "mic.fill")
+                .tag(AppRoute.translation)
+                .tabItem {
+                    Label("Translate", systemImage: "mic.fill")
+                }
+
+            // Placeholder for History screen (Phase 2)
+            PlaceholderView(title: "History", icon: "clock.fill")
+                .tag(AppRoute.history)
+                .tabItem {
+                    Label("History", systemImage: "clock.fill")
+                }
+
+            // Placeholder for Settings screen (Phase 2)
+            PlaceholderView(title: "Settings", icon: "gear")
+                .tag(AppRoute.settings)
+                .tabItem {
+                    Label("Settings", systemImage: "gear")
+                }
+        }
+        .tint(colors.brand.primary)
+    }
+}
+
+// MARK: - Placeholder View
+
+struct PlaceholderView: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    let title: String
+    let icon: String
+
+    var colors: VerbioColorScheme {
+        VerbioColorScheme(colorScheme: colorScheme)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                colors.backgrounds.primary
+                    .ignoresSafeArea()
+
+                VStack(spacing: VerbioSpacing.lg) {
+                    Image(systemName: icon)
+                        .font(.system(size: 60, weight: .regular))
+                        .foregroundStyle(colors.brand.primary.opacity(0.5))
+
+                    Text("Coming Soon")
+                        .verbioHeadlineMedium()
+                        .foregroundStyle(colors.text.secondary)
+
+                    Text("\(title) will be available in the next update.")
+                        .verbioBodyMedium()
+                        .foregroundStyle(colors.text.tertiary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, VerbioSpacing.xxl)
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview("App Router") {
+    AppRouterView()
+}

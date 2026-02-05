@@ -1,0 +1,144 @@
+//
+//  Container.swift
+//  Verbio
+//
+//  Lightweight dependency injection container
+//
+
+import Foundation
+
+// MARK: - Dependency Container
+
+/// Thread-safe dependency injection container
+final class DependencyContainer: @unchecked Sendable {
+
+    // MARK: - Singleton
+
+    static let shared = DependencyContainer()
+
+    // MARK: - Storage
+
+    private var factories: [String: () -> Any] = [:]
+    private var singletons: [String: Any] = [:]
+    private let lock = NSLock()
+
+    // MARK: - Initialization
+
+    private init() {
+        registerDefaults()
+    }
+
+    // MARK: - Registration
+
+    /// Register a factory that creates a new instance each time
+    func register<T>(_ type: T.Type, factory: @escaping () -> T) {
+        let key = String(describing: type)
+        lock.lock()
+        defer { lock.unlock() }
+        factories[key] = factory
+    }
+
+    /// Register a singleton instance
+    func registerSingleton<T>(_ type: T.Type, factory: @escaping () -> T) {
+        let key = String(describing: type)
+        lock.lock()
+        defer { lock.unlock() }
+        singletons[key] = factory()
+    }
+
+    /// Register an existing instance as a singleton
+    func registerInstance<T>(_ instance: T) {
+        let key = String(describing: T.self)
+        lock.lock()
+        defer { lock.unlock() }
+        singletons[key] = instance
+    }
+
+    // MARK: - Resolution
+
+    /// Resolve a dependency
+    func resolve<T>(_ type: T.Type) -> T {
+        let key = String(describing: type)
+        lock.lock()
+        defer { lock.unlock() }
+
+        // Check singletons first
+        if let singleton = singletons[key] as? T {
+            return singleton
+        }
+
+        // Check factories
+        if let factory = factories[key], let instance = factory() as? T {
+            return instance
+        }
+
+        fatalError("No registered dependency for type: \(key)")
+    }
+
+    /// Resolve a dependency, returning nil if not found
+    func resolveOptional<T>(_ type: T.Type) -> T? {
+        let key = String(describing: type)
+        lock.lock()
+        defer { lock.unlock() }
+
+        if let singleton = singletons[key] as? T {
+            return singleton
+        }
+
+        if let factory = factories[key], let instance = factory() as? T {
+            return instance
+        }
+
+        return nil
+    }
+
+    // MARK: - Default Registrations
+
+    private func registerDefaults() {
+        // Register core services
+        registerSingleton(KeychainServiceProtocol.self) {
+            KeychainService()
+        }
+
+        registerSingleton(NetworkClientProtocol.self) {
+            NetworkClient(
+                configuration: AppConfiguration.shared,
+                keychainService: DependencyContainer.shared.resolve(KeychainServiceProtocol.self)
+            )
+        }
+
+        registerSingleton(AuthRepositoryProtocol.self) {
+            AuthRepository(
+                networkClient: DependencyContainer.shared.resolve(NetworkClientProtocol.self),
+                keychainService: DependencyContainer.shared.resolve(KeychainServiceProtocol.self)
+            )
+        }
+
+        registerSingleton(AuthServiceProtocol.self) {
+            AuthService(
+                authRepository: DependencyContainer.shared.resolve(AuthRepositoryProtocol.self),
+                keychainService: DependencyContainer.shared.resolve(KeychainServiceProtocol.self)
+            )
+        }
+    }
+
+    // MARK: - Testing Support
+
+    /// Reset the container (useful for testing)
+    func reset() {
+        lock.lock()
+        defer { lock.unlock() }
+        factories.removeAll()
+        singletons.removeAll()
+        registerDefaults()
+    }
+}
+
+// MARK: - Container Keys
+
+enum ContainerKey {
+    static let keychainService = "KeychainServiceProtocol"
+    static let networkClient = "NetworkClientProtocol"
+    static let authRepository = "AuthRepositoryProtocol"
+    static let authService = "AuthServiceProtocol"
+}

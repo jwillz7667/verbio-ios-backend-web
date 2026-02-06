@@ -10,9 +10,9 @@ import SwiftUI
 // MARK: - Glass Card Style
 
 enum GlassCardStyle {
-    case standard   // Default card with subtle tint
-    case elevated   // More prominent glass effect
-    case outlined   // Border with minimal glass
+    case standard   // Default card with subtle warm tint
+    case elevated   // More prominent glass effect with depth
+    case subtle     // Minimal glass for secondary content
 }
 
 // MARK: - Glass Card
@@ -45,6 +45,39 @@ struct GlassCard<Content: View>: View {
                 cardBackground
             }
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .shadow(
+                color: shadowColor,
+                radius: shadowRadius,
+                x: 0,
+                y: shadowY
+            )
+    }
+
+    private var shadowColor: Color {
+        switch style {
+        case .standard:
+            return Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06)
+        case .elevated:
+            return Color.black.opacity(colorScheme == .dark ? 0.4 : 0.08)
+        case .subtle:
+            return Color.black.opacity(colorScheme == .dark ? 0.2 : 0.04)
+        }
+    }
+
+    private var shadowRadius: CGFloat {
+        switch style {
+        case .standard: return 8
+        case .elevated: return 12
+        case .subtle: return 4
+        }
+    }
+
+    private var shadowY: CGFloat {
+        switch style {
+        case .standard: return 2
+        case .elevated: return 4
+        case .subtle: return 1
+        }
     }
 
     @ViewBuilder
@@ -56,7 +89,11 @@ struct GlassCard<Content: View>: View {
                     .glassEffect(.regular.tint(VerbioGlass.warmTint))
             } else {
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.thinMaterial)
+                    .fill(colors.backgrounds.elevated.opacity(0.85))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(.thinMaterial)
+                    )
             }
 
         case .elevated:
@@ -65,16 +102,25 @@ struct GlassCard<Content: View>: View {
                     .glassEffect(.regular.tint(VerbioGlass.amberTint))
             } else {
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.regularMaterial)
+                    .fill(colors.backgrounds.elevated.opacity(0.9))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(.regularMaterial)
+                    )
             }
 
-        case .outlined:
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .stroke(colors.text.tertiary.opacity(0.3), lineWidth: 1)
-                .background(
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(colors.backgrounds.elevated.opacity(0.5))
-                )
+        case .subtle:
+            if #available(iOS 26.0, *) {
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .glassEffect(.regular.tint(VerbioGlass.warmTint))
+            } else {
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(colors.backgrounds.elevated.opacity(0.6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(.ultraThinMaterial)
+                    )
+            }
         }
     }
 }
@@ -115,6 +161,12 @@ struct InteractiveGlassCard<Content: View>: View {
                     cardBackground
                 }
                 .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                .shadow(
+                    color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06),
+                    radius: isPressed ? 4 : 8,
+                    x: 0,
+                    y: isPressed ? 1 : 2
+                )
                 .scaleEffect(isPressed ? 0.98 : 1.0)
                 .animation(VerbioAnimations.buttonPress, value: isPressed)
         }
@@ -133,7 +185,11 @@ struct InteractiveGlassCard<Content: View>: View {
                 .glassEffect(.regular.tint(VerbioGlass.warmTint).interactive())
         } else {
             RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(.thinMaterial)
+                .fill(colors.backgrounds.elevated.opacity(0.85))
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(.thinMaterial)
+                )
         }
     }
 }

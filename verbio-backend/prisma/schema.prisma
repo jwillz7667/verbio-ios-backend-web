@@ -58,6 +58,7 @@ model User {
   conversations   Conversation[]
   voicePreference VoicePreference?
   usageRecords    UsageRecord[]
+  savedPhrases    SavedPhrase[]
 
   @@map("users")
 }
@@ -138,6 +139,29 @@ model Message {
 
   @@index([conversationId])
   @@map("messages")
+}
+
+// Saved phrases for quick reference
+model SavedPhrase {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  originalText   String   @map("original_text") @db.Text
+  translatedText String   @map("translated_text") @db.Text
+  sourceLanguage Language @map("source_language")
+  targetLanguage Language @map("target_language")
+  isFavorite     Boolean  @default(false) @map("is_favorite")
+  usageCount     Int      @default(0) @map("usage_count")
+  lastUsedAt     DateTime? @map("last_used_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, originalText, targetLanguage])
+  @@index([userId])
+  @@index([userId, isFavorite])
+  @@map("saved_phrases")
 }
 
 // Daily usage tracking for rate limiting and analytics

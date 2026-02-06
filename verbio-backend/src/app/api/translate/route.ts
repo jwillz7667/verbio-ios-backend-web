@@ -4,8 +4,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth/middleware'
 import { handleError } from '@/lib/errors/handler'
 import { translateRequestSchema, validateBody } from '@/lib/validation/schemas'
-import { TranslateResponse, ConversationContext } from '@/types/translation'
+import { TranslateResponse, ConversationContext, WHISPER_LANGUAGE_MAP } from '@/types/translation'
 import { Language, SubscriptionTier } from '@prisma/client'
+
+const VALID_LANGUAGES = new Set(Object.keys(WHISPER_LANGUAGE_MAP))
 
 // Services
 import { transcribeAudio, decodeAudioBase64 } from '@/lib/services/whisper'
@@ -155,6 +157,5 @@ export async function POST(
 }
 
 function isValidLanguage(lang: string): lang is Language {
-  const validLanguages = ['EN', 'ES', 'FR', 'DE', 'IT', 'PT', 'ZH', 'JA', 'KO', 'AR', 'HI', 'RU']
-  return validLanguages.includes(lang)
+  return VALID_LANGUAGES.has(lang)
 }

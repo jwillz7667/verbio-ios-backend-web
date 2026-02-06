@@ -78,9 +78,9 @@ enum UserEndpoint: APIEndpoint {
     var path: String {
         switch self {
         case .profile:
-            return "/api/user"
+            return "/api/user/profile"
         case .updateProfile:
-            return "/api/user"
+            return "/api/user/profile"
         case .preferences:
             return "/api/user/preferences"
         case .updatePreferences:
@@ -137,7 +137,49 @@ enum TranslationEndpoint: APIEndpoint {
     }
 }
 
-// MARK: - Conversation Endpoints (Phase 2+)
+// MARK: - Phrases Endpoints
+
+enum PhrasesEndpoint: APIEndpoint {
+    case list(limit: Int, offset: Int, favoritesOnly: Bool, search: String?)
+    case create
+    case get(id: String)
+    case update(id: String)
+    case delete(id: String)
+
+    var path: String {
+        switch self {
+        case .list(let limit, let offset, let favoritesOnly, let search):
+            var queryItems = "?limit=\(limit)&offset=\(offset)"
+            if favoritesOnly {
+                queryItems += "&favorites=true"
+            }
+            if let search = search, !search.isEmpty {
+                let encoded = search.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? search
+                queryItems += "&search=\(encoded)"
+            }
+            return "/api/phrases\(queryItems)"
+        case .create:
+            return "/api/phrases"
+        case .get(let id), .update(let id), .delete(let id):
+            return "/api/phrases/\(id)"
+        }
+    }
+
+    var method: HTTPMethod {
+        switch self {
+        case .list, .get:
+            return .get
+        case .create:
+            return .post
+        case .update:
+            return .patch
+        case .delete:
+            return .delete
+        }
+    }
+}
+
+// MARK: - Conversation Endpoints
 
 enum ConversationEndpoint: APIEndpoint {
     case list

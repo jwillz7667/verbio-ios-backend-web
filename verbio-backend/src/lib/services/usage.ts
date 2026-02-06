@@ -37,6 +37,9 @@ export async function checkRateLimit(
 
   const key = `${RATE_LIMIT_PREFIX}${userId}`
 
+  // Auto-reset daily count if 24h have passed (DB fallback or primary)
+  await autoResetDailyCount(userId)
+
   // If Redis is not available, fall back to database-based rate limiting
   if (!redis) {
     const user = await prisma.user.findUnique({
@@ -46,12 +49,14 @@ export async function checkRateLimit(
 
     const count = user?.dailyTranslations || 0
     const remaining = Math.max(0, limit - count)
-    const resetAt = new Date(Date.now() + RATE_LIMIT_WINDOW * 1000)
+    const lastReset = user?.lastUsageReset || new Date()
+    const resetAt = new Date(lastReset.getTime() + RATE_LIMIT_WINDOW * 1000)
 
     if (count >= limit) {
+      const retryAfter = Math.max(1, Math.ceil((resetAt.getTime() - Date.now()) / 1000))
       throw new TooManyRequestsError(
         `Daily translation limit (${limit}) exceeded.`,
-        RATE_LIMIT_WINDOW
+        retryAfter
       )
     }
 
@@ -225,33 +230,40 @@ export async function getUserUsageStats(
 }
 
 /**
+ * Auto-reset daily translation count if 24h have elapsed.
+ * Called automatically within checkRateLimit to ensure counts reset.
+ */
+async function autoResetDailyCount(userId: string): Promise<void> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { lastUsageReset: true, dailyTranslations: true },
+    })
+
+    if (!user) return
+
+    const msSinceReset = Date.now() - user.lastUsageReset.getTime()
+
+    if (msSinceReset >= RATE_LIMIT_WINDOW * 1000) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          dailyTranslations: 0,
+          lastUsageReset: new Date(),
+        },
+      })
+    }
+  } catch (error) {
+    console.error('Failed to auto-reset daily count:', error)
+  }
+}
+
+/**
  * Reset daily translation count (called by cron or on first daily request)
  * @param userId User ID
  */
 export async function resetDailyCount(userId: string): Promise<void> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { lastUsageReset: true },
-  })
-
-  if (!user) return
-
-  const lastReset = user.lastUsageReset
-  const now = new Date()
-  const daysSinceReset = Math.floor(
-    (now.getTime() - lastReset.getTime()) / (24 * 60 * 60 * 1000)
-  )
-
-  // Reset if more than 24 hours since last reset
-  if (daysSinceReset >= 1) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        dailyTranslations: 0,
-        lastUsageReset: now,
-      },
-    })
-  }
+  await autoResetDailyCount(userId)
 }
 
 /**

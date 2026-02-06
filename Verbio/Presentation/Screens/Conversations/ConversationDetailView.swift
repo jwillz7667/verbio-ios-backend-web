@@ -121,8 +121,15 @@ struct ConversationDetailView: View {
         .verbioCaption()
         .padding(.horizontal, VerbioSpacing.sm)
         .padding(.vertical, VerbioSpacing.xs)
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
+        .background {
+            if #available(iOS 26.0, *) {
+                Capsule()
+                    .glassEffect(.regular.tint(VerbioGlass.warmTint))
+            } else {
+                Capsule()
+                    .fill(.ultraThinMaterial)
+            }
+        }
     }
 }
 
@@ -210,9 +217,22 @@ private struct MessageBubbleView: View {
             }
             .verbioCardPadding()
             .background {
-                RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.lg)
-                    .fill(message.isFromUser ? colors.brand.primary.opacity(0.1) : colors.backgrounds.elevated)
+                if #available(iOS 26.0, *) {
+                    RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.lg)
+                        .glassEffect(
+                            .regular.tint(message.isFromUser ? VerbioGlass.amberTint : VerbioGlass.warmTint)
+                        )
+                } else {
+                    RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.lg)
+                        .fill(message.isFromUser ? colors.brand.primary.opacity(0.1) : colors.backgrounds.elevated)
+                }
             }
+            .shadow(
+                color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.04),
+                radius: 4,
+                x: 0,
+                y: 1
+            )
         }
         .frame(maxWidth: .infinity, alignment: message.isFromUser ? .trailing : .leading)
     }

@@ -91,11 +91,23 @@ struct HomeView: View {
 
             LinearGradient(
                 colors: [
-                    VerbioColors.Primary.amber400.opacity(0.1),
+                    VerbioColors.Primary.amber400.opacity(0.08),
+                    VerbioColors.Accent.warmOrange.opacity(0.04),
                     Color.clear
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
+            )
+
+            // Subtle radial glow behind header area
+            RadialGradient(
+                colors: [
+                    VerbioColors.Primary.amber500.opacity(0.06),
+                    Color.clear
+                ],
+                center: .topLeading,
+                startRadius: 20,
+                endRadius: 300
             )
         }
     }
@@ -240,7 +252,7 @@ struct HomeView: View {
                     // Quick stats
                     HStack {
                         StatItem(
-                            value: "12",
+                            value: "\(viewModel.usage?.translationsCount ?? 0)",
                             label: "Translations",
                             icon: "text.bubble.fill"
                         )
@@ -248,7 +260,7 @@ struct HomeView: View {
                         Spacer()
 
                         StatItem(
-                            value: "3",
+                            value: "\(viewModel.usage?.conversationsCount ?? 0)",
                             label: "Conversations",
                             icon: "message.fill"
                         )
@@ -256,9 +268,9 @@ struct HomeView: View {
                         Spacer()
 
                         StatItem(
-                            value: "5",
-                            label: "Languages",
-                            icon: "globe"
+                            value: "\(viewModel.subscriptionTier.dailyLimit)",
+                            label: "Daily Limit",
+                            icon: "gauge.medium"
                         )
                     }
                 }

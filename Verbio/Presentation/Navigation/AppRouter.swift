@@ -164,7 +164,7 @@ struct MainTabView: View {
             SettingsView()
                 .tag(AppRoute.settings)
                 .tabItem {
-                    Label("Settings", systemImage: "gear")
+                    Label("Settings", systemImage: "gearshape.fill")
                 }
         }
         .tint(colors.brand.primary)

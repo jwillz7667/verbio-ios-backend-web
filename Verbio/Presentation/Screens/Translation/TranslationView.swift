@@ -13,7 +13,12 @@ struct TranslationView: View {
 
     // MARK: - Properties
 
+    @Environment(\.colorScheme) private var colorScheme
     @State private var viewModel = TranslationViewModel()
+
+    var colors: VerbioColorScheme {
+        VerbioColorScheme(colorScheme: colorScheme)
+    }
 
     // MARK: - Body
 
@@ -27,15 +32,15 @@ struct TranslationView: View {
                 VStack(spacing: 0) {
                     // Language selector
                     languageSelector
-                        .padding(.top, 16)
-                        .padding(.horizontal, 24)
+                        .padding(.top, VerbioSpacing.lg)
+                        .padding(.horizontal, VerbioSpacing.xxl)
 
                     Spacer()
 
                     // Translation results
                     if let translation = viewModel.currentTranslation {
                         translationResult(translation)
-                            .padding(.horizontal, 24)
+                            .padding(.horizontal, VerbioSpacing.xxl)
                             .transition(.asymmetric(
                                 insertion: .move(edge: .bottom).combined(with: .opacity),
                                 removal: .opacity
@@ -46,7 +51,7 @@ struct TranslationView: View {
 
                     // Recording controls
                     recordingSection
-                        .padding(.bottom, geometry.safeAreaInsets.bottom + 24)
+                        .padding(.bottom, geometry.safeAreaInsets.bottom + VerbioSpacing.xxl)
                 }
             }
         }
@@ -54,8 +59,8 @@ struct TranslationView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("Translate")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                    .verbioHeadlineMedium()
+                    .foregroundStyle(colors.text.primary)
             }
 
             ToolbarItem(placement: .topBarTrailing) {
@@ -78,31 +83,78 @@ struct TranslationView: View {
     // MARK: - Subviews
 
     private var backgroundGradient: some View {
-        LinearGradient(
-            colors: gradientColors,
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .animation(.easeInOut(duration: 0.5), value: viewModel.state)
+        ZStack {
+            colors.backgrounds.primary
+
+            // State-aware gradient overlay
+            LinearGradient(
+                colors: gradientColors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .animation(.easeInOut(duration: 0.5), value: viewModel.state)
+
+            // Subtle radial glow centered on mic button
+            RadialGradient(
+                colors: [
+                    accentGlowColor.opacity(0.15),
+                    Color.clear
+                ],
+                center: .bottom,
+                startRadius: 40,
+                endRadius: 250
+            )
+            .animation(.easeInOut(duration: 0.3), value: viewModel.state)
+        }
     }
 
     private var gradientColors: [Color] {
         switch viewModel.state {
         case .idle, .translated:
-            return [Color.blue.opacity(0.8), Color.purple.opacity(0.6)]
+            return [
+                VerbioColors.Primary.amber400.opacity(0.08),
+                VerbioColors.Accent.warmOrange.opacity(0.04),
+                Color.clear
+            ]
         case .recording:
-            return [Color.red.opacity(0.8), Color.orange.opacity(0.6)]
+            return [
+                VerbioColors.Semantic.error.opacity(0.12),
+                VerbioColors.Accent.warmOrange.opacity(0.08),
+                Color.clear
+            ]
         case .processing:
-            return [Color.purple.opacity(0.8), Color.indigo.opacity(0.6)]
+            return [
+                VerbioColors.Primary.amber600.opacity(0.1),
+                VerbioColors.Primary.amber400.opacity(0.06),
+                Color.clear
+            ]
         case .playing:
-            return [Color.green.opacity(0.8), Color.teal.opacity(0.6)]
+            return [
+                VerbioColors.Semantic.success.opacity(0.08),
+                VerbioColors.Primary.amber400.opacity(0.04),
+                Color.clear
+            ]
         case .error:
-            return [Color.red.opacity(0.8), Color.pink.opacity(0.6)]
+            return [
+                VerbioColors.Semantic.error.opacity(0.1),
+                Color.clear,
+                Color.clear
+            ]
+        }
+    }
+
+    private var accentGlowColor: Color {
+        switch viewModel.state {
+        case .idle, .translated: return VerbioColors.Primary.amber500
+        case .recording: return VerbioColors.Semantic.error
+        case .processing: return VerbioColors.Primary.amber600
+        case .playing: return VerbioColors.Semantic.success
+        case .error: return VerbioColors.Semantic.error
         }
     }
 
     private var languageSelector: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: VerbioSpacing.lg) {
             LanguagePicker(
                 selectedLanguage: $viewModel.sourceLanguage,
                 label: "From"
@@ -124,7 +176,7 @@ struct TranslationView: View {
     }
 
     private func translationResult(_ translation: Translation) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: VerbioSpacing.lg) {
             // Original text card
             TranslationResultCard(
                 text: translation.originalText,
@@ -152,25 +204,28 @@ struct TranslationView: View {
     }
 
     private var recordingSection: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: VerbioSpacing.xxl) {
             // Processing indicator
             if viewModel.isProcessing {
-                VStack(spacing: 12) {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(.white)
-                        .scaleEffect(1.2)
+                GlassCard(style: .subtle) {
+                    HStack(spacing: VerbioSpacing.md) {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(colors.brand.primary)
 
-                    Text("Translating...")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.8))
+                        Text("Translating...")
+                            .verbioBodyMedium()
+                            .foregroundStyle(colors.text.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
+                .padding(.horizontal, VerbioSpacing.xxl)
                 .transition(.opacity)
             }
 
             // Waveform during recording
             if viewModel.isRecording {
-                VStack(spacing: 12) {
+                VStack(spacing: VerbioSpacing.md) {
                     AudioWaveformView(
                         level: viewModel.audioLevel,
                         isRecording: true
@@ -178,11 +233,11 @@ struct TranslationView: View {
                     .frame(height: 40)
 
                     Text(viewModel.formattedDuration)
-                        .font(.title2)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white)
+                        .verbioDisplaySmall()
+                        .foregroundStyle(colors.text.primary)
                         .monospacedDigit()
                 }
+                .padding(.horizontal, VerbioSpacing.xxl)
                 .transition(.opacity)
             }
 
@@ -205,24 +260,27 @@ struct TranslationView: View {
             }
         } label: {
             ZStack {
-                // Outer ring
+                // Outer glass ring
                 Circle()
-                    .stroke(.white.opacity(0.3), lineWidth: 4)
+                    .stroke(colors.brand.primary.opacity(0.3), lineWidth: 4)
                     .frame(width: 88, height: 88)
 
                 // Level indicator ring
                 if viewModel.isRecording {
                     Circle()
                         .trim(from: 0, to: CGFloat(viewModel.audioLevel))
-                        .stroke(.white, lineWidth: 4)
+                        .stroke(
+                            VerbioColors.Semantic.error,
+                            style: StrokeStyle(lineWidth: 4, lineCap: .round)
+                        )
                         .frame(width: 88, height: 88)
                         .rotationEffect(.degrees(-90))
                         .animation(.easeOut(duration: 0.1), value: viewModel.audioLevel)
                 }
 
-                // Inner button
+                // Inner button with glass effect
                 Circle()
-                    .fill(viewModel.isRecording ? .red : .white)
+                    .fill(viewModel.isRecording ? VerbioColors.Semantic.error : colors.brand.primary)
                     .frame(width: 72, height: 72)
                     .overlay {
                         if viewModel.isRecording {
@@ -232,9 +290,15 @@ struct TranslationView: View {
                         } else {
                             Image(systemName: "mic.fill")
                                 .font(.title)
-                                .foregroundStyle(.black)
+                                .foregroundStyle(.white)
                         }
                     }
+                    .shadow(
+                        color: (viewModel.isRecording ? VerbioColors.Semantic.error : colors.brand.primary).opacity(0.3),
+                        radius: viewModel.isRecording ? 16 : 8,
+                        x: 0,
+                        y: 4
+                    )
                     .scaleEffect(viewModel.isRecording ? 0.9 : 1.0)
                     .animation(.spring(response: 0.3), value: viewModel.isRecording)
             }
@@ -246,8 +310,8 @@ struct TranslationView: View {
 
     private var instructionText: some View {
         Text(instructionMessage)
-            .font(.subheadline)
-            .foregroundStyle(.white.opacity(0.7))
+            .verbioBodySmall()
+            .foregroundStyle(colors.text.tertiary)
             .multilineTextAlignment(.center)
     }
 
@@ -271,20 +335,26 @@ struct TranslationView: View {
     }
 
     private var usageIndicator: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: VerbioSpacing.xs) {
             Text("\(viewModel.dailyRemaining)")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundStyle(viewModel.isNearingLimit ? .orange : .white)
+                .verbioLabelSmall()
+                .foregroundStyle(viewModel.isNearingLimit ? VerbioColors.Semantic.warning : colors.text.primary)
 
             Text("/\(viewModel.dailyLimit)")
-                .font(.caption2)
-                .foregroundStyle(.white.opacity(0.6))
+                .verbioCaption()
+                .foregroundStyle(colors.text.tertiary)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
+        .padding(.horizontal, VerbioSpacing.sm)
+        .padding(.vertical, VerbioSpacing.xs)
+        .background {
+            if #available(iOS 26.0, *) {
+                Capsule()
+                    .glassEffect(.regular.tint(VerbioGlass.warmTint))
+            } else {
+                Capsule()
+                    .fill(.ultraThinMaterial)
+            }
+        }
     }
 }
 

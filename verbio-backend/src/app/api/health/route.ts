@@ -2,6 +2,7 @@
 
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/db/prisma'
+import { redis } from '@/lib/db/redis'
 
 interface HealthResponse {
   status: 'healthy' | 'degraded' | 'unhealthy'
@@ -9,7 +10,7 @@ interface HealthResponse {
   version: string
   services: {
     database: 'connected' | 'disconnected'
-    redis?: 'connected' | 'disconnected'
+    redis: 'connected' | 'disconnected' | 'not_configured'
   }
 }
 
@@ -26,8 +27,25 @@ export async function GET(): Promise<NextResponse<HealthResponse>> {
     console.error('Database health check failed:', error)
   }
 
+  // Check Redis connection
+  let redisStatus: 'connected' | 'disconnected' | 'not_configured' = 'not_configured'
+  if (redis) {
+    try {
+      await redis.ping()
+      redisStatus = 'connected'
+    } catch (error) {
+      console.error('Redis health check failed:', error)
+      redisStatus = 'disconnected'
+    }
+  }
+
   // Determine overall status
-  const status = databaseStatus === 'connected' ? 'healthy' : 'unhealthy'
+  let status: HealthResponse['status'] = 'healthy'
+  if (databaseStatus === 'disconnected') {
+    status = 'unhealthy'
+  } else if (redisStatus === 'disconnected') {
+    status = 'degraded'
+  }
 
   const response: HealthResponse = {
     status,
@@ -35,10 +53,11 @@ export async function GET(): Promise<NextResponse<HealthResponse>> {
     version,
     services: {
       database: databaseStatus,
+      redis: redisStatus,
     },
   }
 
   return NextResponse.json(response, {
-    status: status === 'healthy' ? 200 : 503,
+    status: status === 'unhealthy' ? 503 : 200,
   })
 }

@@ -22,8 +22,19 @@ struct SavedPhrasesView: View {
     var body: some View {
         NavigationStack {
             ZStack {
+                // Warm background
                 colors.backgrounds.primary
                     .ignoresSafeArea()
+
+                LinearGradient(
+                    colors: [
+                        VerbioColors.Primary.amber400.opacity(0.04),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .center
+                )
+                .ignoresSafeArea()
 
                 Group {
                     if viewModel.isLoading && viewModel.phrases.isEmpty {

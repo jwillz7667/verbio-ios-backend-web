@@ -19,6 +19,38 @@ const VOICE_SETTINGS = {
 // Maximum text length (5000 characters)
 const MAX_TEXT_LENGTH = 5000
 
+function getApiKey(): string {
+  const key = process.env.ELEVENLABS_API_KEY
+  if (!key) {
+    throw new InternalServerError('ElevenLabs API key is not configured')
+  }
+  return key
+}
+
+/**
+ * Estimate audio duration from MP3 buffer by parsing frame headers.
+ * Falls back to text-based estimation if parsing fails.
+ */
+function estimateMp3Duration(buffer: Buffer, textLength: number): number {
+  const bitrateTable = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0]
+  for (let i = 0; i < Math.min(buffer.length - 4, 4096); i++) {
+    if (buffer[i] === 0xFF && (buffer[i + 1] & 0xE0) === 0xE0) {
+      const header = buffer.readUInt32BE(i)
+      const versionBits = (header >> 19) & 0x03
+      const layerBits = (header >> 17) & 0x03
+      const bitrateBits = (header >> 12) & 0x0F
+      if (versionBits === 3 && layerBits === 1 && bitrateBits > 0 && bitrateBits < 15) {
+        const bitrateKbps = bitrateTable[bitrateBits]
+        if (bitrateKbps > 0) {
+          return Math.round((buffer.length * 8) / (bitrateKbps * 1000) * 1000)
+        }
+      }
+      break
+    }
+  }
+  return Math.max(500, Math.round((textLength / 5 / 150) * 60 * 1000))
+}
+
 /**
  * Generate speech from text using ElevenLabs v3
  * @param text Text to synthesize
@@ -50,7 +82,7 @@ export async function synthesizeSpeech(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'xi-api-key': process.env.ELEVENLABS_API_KEY || '',
+          'xi-api-key': getApiKey(),
         },
         body: JSON.stringify({
           text,
@@ -83,13 +115,12 @@ export async function synthesizeSpeech(
     const arrayBuffer = await response.arrayBuffer()
     const audioBuffer = Buffer.from(arrayBuffer)
 
-    // Estimate duration based on text length (rough approximation)
-    // Average speaking rate: ~150 words per minute, ~5 characters per word
-    const estimatedDurationMs = Math.round((text.length / 5 / 150) * 60 * 1000)
+    // Calculate duration from MP3 buffer or estimate from text
+    const durationMs = estimateMp3Duration(audioBuffer, text.length)
 
     return {
       audioBuffer,
-      durationMs: estimatedDurationMs,
+      durationMs,
     }
   } catch (error) {
     if (error instanceof BadRequestError || error instanceof InternalServerError) {
@@ -127,7 +158,7 @@ export async function synthesizeSpeechStream(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'xi-api-key': process.env.ELEVENLABS_API_KEY || '',
+          'xi-api-key': getApiKey(),
         },
         body: JSON.stringify({
           text,

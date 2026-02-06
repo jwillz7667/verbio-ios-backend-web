@@ -13,11 +13,17 @@ struct TranslationResultCard: View {
 
     // MARK: - Properties
 
+    @Environment(\.colorScheme) private var colorScheme
+
     let text: String
     let language: Language
     let isOriginal: Bool
     let isPlaying: Bool
     let onPlayTapped: (() -> Void)?
+
+    var colors: VerbioColorScheme {
+        VerbioColorScheme(colorScheme: colorScheme)
+    }
 
     // MARK: - Initialization
 
@@ -38,67 +44,69 @@ struct TranslationResultCard: View {
     // MARK: - Body
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Header
-            HStack {
-                Text(language.flag)
-                    .font(.title2)
-
-                Text(isOriginal ? "Original" : "Translation")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Text(language.displayName)
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-
-            // Text content
-            Text(text)
-                .font(.body)
-                .fontWeight(isOriginal ? .regular : .medium)
-                .foregroundStyle(isOriginal ? .secondary : .primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .multilineTextAlignment(.leading)
-
-            // Play button (only for translated text)
-            if !isOriginal, let onPlayTapped = onPlayTapped {
+        GlassCard(style: isOriginal ? .subtle : .standard) {
+            VStack(alignment: .leading, spacing: VerbioSpacing.md) {
+                // Header
                 HStack {
+                    Text(language.flag)
+                        .font(.title2)
+
+                    Text(isOriginal ? "Original" : "Translation")
+                        .verbioCaption()
+                        .foregroundStyle(colors.text.tertiary)
+
                     Spacer()
 
-                    Button(action: onPlayTapped) {
-                        HStack(spacing: 8) {
-                            Image(systemName: isPlaying ? "stop.fill" : "play.fill")
-                                .font(.caption)
+                    Text(language.displayName)
+                        .verbioCaption()
+                        .foregroundStyle(colors.text.disabled)
+                }
 
-                            Text(isPlaying ? "Stop" : "Play")
-                                .font(.caption)
-                                .fontWeight(.medium)
+                // Text content
+                Text(text)
+                    .verbioBodyMedium()
+                    .foregroundStyle(isOriginal ? colors.text.secondary : colors.text.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .multilineTextAlignment(.leading)
+
+                // Play button (only for translated text)
+                if !isOriginal, let onPlayTapped = onPlayTapped {
+                    HStack {
+                        Spacer()
+
+                        Button(action: onPlayTapped) {
+                            HStack(spacing: VerbioSpacing.sm) {
+                                Image(systemName: isPlaying ? "stop.fill" : "play.fill")
+                                    .font(.system(size: 12))
+
+                                Text(isPlaying ? "Stop" : "Play")
+                                    .verbioLabelSmall()
+                            }
+                            .foregroundStyle(isPlaying ? .white : colors.brand.primary)
+                            .padding(.horizontal, VerbioSpacing.lg)
+                            .padding(.vertical, VerbioSpacing.sm)
+                            .background {
+                                if isPlaying {
+                                    Capsule()
+                                        .fill(VerbioColors.Semantic.error)
+                                } else {
+                                    Capsule()
+                                        .fill(colors.brand.primary.opacity(0.15))
+                                }
+                            }
                         }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(isPlaying ? Color.red.opacity(0.8) : Color.white.opacity(0.2))
-                        )
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
         }
-        .padding(16)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
 
 // MARK: - Translation Pair Card
 
 struct TranslationPairCard: View {
+    @Environment(\.colorScheme) private var colorScheme
 
     // MARK: - Properties
 
@@ -108,6 +116,10 @@ struct TranslationPairCard: View {
     let targetLanguage: Language
     let isPlaying: Bool
     let onPlayTapped: () -> Void
+
+    var colors: VerbioColorScheme {
+        VerbioColorScheme(colorScheme: colorScheme)
+    }
 
     // MARK: - Body
 
@@ -122,8 +134,8 @@ struct TranslationPairCard: View {
 
             // Connector
             Rectangle()
-                .fill(.white.opacity(0.1))
-                .frame(width: 2, height: 16)
+                .fill(colors.brand.primary.opacity(0.2))
+                .frame(width: 2, height: VerbioSpacing.lg)
 
             // Translated text
             TranslationResultCard(
@@ -140,10 +152,16 @@ struct TranslationPairCard: View {
 // MARK: - Compact Translation Card
 
 struct CompactTranslationCard: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     let translation: Translation
     let isPlaying: Bool
     let onPlayTapped: () -> Void
     let onTapped: (() -> Void)?
+
+    var colors: VerbioColorScheme {
+        VerbioColorScheme(colorScheme: colorScheme)
+    }
 
     init(
         translation: Translation,
@@ -161,42 +179,41 @@ struct CompactTranslationCard: View {
         Button {
             onTapped?()
         } label: {
-            HStack(spacing: 12) {
-                // Language indicators
-                VStack(spacing: 4) {
-                    Text(translation.sourceLanguage.flag)
-                    Image(systemName: "arrow.down")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    Text(translation.targetLanguage.flag)
-                }
-                .font(.title3)
+            GlassCard(style: .subtle) {
+                HStack(spacing: VerbioSpacing.md) {
+                    // Language indicators
+                    VStack(spacing: VerbioSpacing.xs) {
+                        Text(translation.sourceLanguage.flag)
+                        Image(systemName: "arrow.down")
+                            .font(.caption2)
+                            .foregroundStyle(colors.text.tertiary)
+                        Text(translation.targetLanguage.flag)
+                    }
+                    .font(.title3)
 
-                // Text content
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(translation.originalText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                    // Text content
+                    VStack(alignment: .leading, spacing: VerbioSpacing.xs) {
+                        Text(translation.originalText)
+                            .verbioCaption()
+                            .foregroundStyle(colors.text.secondary)
+                            .lineLimit(1)
 
-                    Text(translation.translatedText)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .lineLimit(2)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(translation.translatedText)
+                            .verbioLabelMedium()
+                            .foregroundStyle(colors.text.primary)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                // Play button
-                Button(action: onPlayTapped) {
-                    Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
-                        .font(.title)
-                        .foregroundStyle(isPlaying ? .red : .white)
+                    // Play button
+                    Button(action: onPlayTapped) {
+                        Image(systemName: isPlaying ? "stop.circle.fill" : "play.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(isPlaying ? VerbioColors.Semantic.error : colors.brand.primary)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
-            .padding(12)
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }
@@ -206,12 +223,8 @@ struct CompactTranslationCard: View {
 
 #Preview {
     ZStack {
-        LinearGradient(
-            colors: [.blue.opacity(0.8), .purple.opacity(0.6)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        .ignoresSafeArea()
+        Color(hex: "FFFEF7")
+            .ignoresSafeArea()
 
         ScrollView {
             VStack(spacing: 24) {

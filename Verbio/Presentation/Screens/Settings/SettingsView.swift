@@ -41,6 +41,9 @@ struct SettingsView: View {
                         // Profile Section
                         profileSection
 
+                        // Subscription Section
+                        subscriptionSection
+
                         // Language Preferences
                         languageSection
 
@@ -132,6 +135,46 @@ struct SettingsView: View {
                     Spacer()
                 }
             }
+        }
+    }
+
+    // MARK: - Subscription Section
+
+    private var subscriptionSection: some View {
+        VStack(alignment: .leading, spacing: VerbioSpacing.md) {
+            Text("Subscription")
+                .verbioHeadlineSmall()
+                .foregroundStyle(colors.text.secondary)
+
+            NavigationLink {
+                SubscriptionManagementView()
+            } label: {
+                GlassCard {
+                    HStack(spacing: VerbioSpacing.md) {
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(colors.brand.primary)
+                            .frame(width: 28)
+
+                        VStack(alignment: .leading, spacing: VerbioSpacing.xxs) {
+                            Text("Manage Plan")
+                                .verbioBodyMedium()
+                                .foregroundStyle(colors.text.primary)
+
+                            Text(viewModel.tierDisplayName)
+                                .verbioCaption()
+                                .foregroundStyle(colors.text.secondary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12))
+                            .foregroundStyle(colors.text.tertiary)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
         }
     }
 

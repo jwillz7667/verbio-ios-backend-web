@@ -1,0 +1,198 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Brand Colors (from iOS app VerbioColors) ── */
+  --color-amber-400: #fabf24;
+  --color-amber-500: #fabf24;
+  --color-amber-600: #e5ab10;
+  --color-amber-700: #c4900e;
+
+  --color-orange-warm: #ea580c;
+  --color-coral-soft: #fb923c;
+  --color-orange-deep: #c2410c;
+
+  /* ── Stone Neutrals ── */
+  --color-stone-50: #fafaf9;
+  --color-stone-100: #f5f5f4;
+  --color-stone-200: #e7e5e4;
+  --color-stone-300: #d6d3d1;
+  --color-stone-400: #a8a29e;
+  --color-stone-500: #78716c;
+  --color-stone-600: #57534e;
+  --color-stone-700: #44403c;
+  --color-stone-800: #2b2a27;
+  --color-stone-900: #1c1b18;
+
+  /* ── Semantic ── */
+  --color-cream: #fffef7;
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* ── Fonts ── */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ── Animations ── */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-glow: glow 4s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.6s ease-out forwards;
+}
+
+/* ── Keyframes ── */
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-rotate {
+  0% {
+    --gradient-angle: 0deg;
+  }
+  100% {
+    --gradient-angle: 360deg;
+  }
+}
+
+/* ── @property for animated gradients ── */
+
+@property --gradient-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* ── Global Styles ── */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-stone-800);
+}
+
+::selection {
+  background: var(--color-amber-400);
+  color: var(--color-stone-900);
+}
+
+/* ── Dark mode ── */
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #000;
+    color: var(--color-stone-50);
+  }
+
+  ::selection {
+    background: var(--color-amber-600);
+    color: #000;
+  }
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ── Utility ── */
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  .glass {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--color-amber-400), var(--color-orange-warm), var(--color-amber-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--color-amber-400), var(--color-orange-warm));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}

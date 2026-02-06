@@ -2,9 +2,55 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Display Name -->
+	<key>CFBundleDisplayName</key>
+	<string>Verbio</string>
+
+	<!-- Permissions -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Verbio needs microphone access to record your voice for real-time translation.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Verbio uses speech recognition to transcribe your voice for translation.</string>
+
+	<!-- Background Modes -->
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>remote-notification</string>
+	</array>
+
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
+
+	<!-- Status Bar -->
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+
+	<!-- App Category -->
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+
+	<!-- URL Schemes for deep linking -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.verbio.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>verbio</string>
+			</array>
+		</dict>
+	</array>
+
+	<!-- Queried URL Schemes (for canOpenURL checks) -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>mailto</string>
 	</array>
 </dict>
 </plist>

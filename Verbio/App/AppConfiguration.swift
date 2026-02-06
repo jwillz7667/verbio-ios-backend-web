@@ -17,7 +17,7 @@ enum AppEnvironment: String {
     var baseURL: String {
         switch self {
         case .development:
-            return "http://localhost:3000"
+            return "https://verbio-ios-backend-web-production.up.railway.app"
         case .staging:
             return "https://staging-api.verbio.app"
         case .production:

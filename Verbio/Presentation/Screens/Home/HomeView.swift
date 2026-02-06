@@ -15,6 +15,7 @@ struct HomeView: View {
     @Binding var selectedTab: AppRoute
     @State private var viewModel = HomeViewModel()
     @State private var showingLogoutConfirmation = false
+    @State private var showPaywall = false
 
     init(selectedTab: Binding<AppRoute> = .constant(.home)) {
         _selectedTab = selectedTab
@@ -66,6 +67,9 @@ struct HomeView: View {
         }
         .task {
             await viewModel.loadData()
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
         }
         .confirmationDialog(
             "Sign Out",
@@ -127,9 +131,14 @@ struct HomeView: View {
                     .foregroundStyle(colors.text.secondary)
 
                 if viewModel.subscriptionTier == .free {
-                    Text("• Upgrade")
-                        .verbioLabelMedium()
-                        .foregroundStyle(colors.brand.accent)
+                    Button {
+                        showPaywall = true
+                    } label: {
+                        Text("• Upgrade")
+                            .verbioLabelMedium()
+                            .foregroundStyle(colors.brand.accent)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
         }

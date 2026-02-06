@@ -16,6 +16,12 @@ struct VerbioApp: App {
         // Initialize dependency container
         // This happens automatically via DependencyContainer.shared
         // but we can add custom initialization here if needed
+
+        // Start StoreKit transaction listener
+        Task {
+            let storeKit = DependencyContainer.shared.resolve(StoreKitServiceProtocol.self)
+            await storeKit.startTransactionListener()
+        }
     }
 
     // MARK: - Body

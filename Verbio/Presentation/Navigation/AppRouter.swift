@@ -45,6 +45,22 @@ final class AuthState {
         isCheckingAuth = true
         defer { isCheckingAuth = false }
 
+        // TEMPORARY: Bypass auth for testing
+        #if DEBUG
+        isAuthenticated = true
+        currentUser = User(
+            id: "test-user-id",
+            appleUserId: "test-apple-id",
+            email: "test@verbio.app",
+            firstName: "Test",
+            lastName: "User",
+            subscriptionTier: .free,
+            createdAt: Date(),
+            updatedAt: Date()
+        )
+        return
+        #endif
+
         isAuthenticated = await authService.checkAuthStatus()
 
         if isAuthenticated {
@@ -70,6 +86,7 @@ struct AppRouterView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var authState = AuthState()
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
 
     var colors: VerbioColorScheme {
         VerbioColorScheme(colorScheme: colorScheme)
@@ -81,9 +98,16 @@ struct AppRouterView: View {
                 // Loading state
                 splashView
             } else if authState.isAuthenticated {
-                // Authenticated - show main app
-                MainTabView()
-                    .environment(authState)
+                if !hasSeenOnboarding {
+                    // Show onboarding on first launch after sign-in
+                    OnboardingView {
+                        hasSeenOnboarding = true
+                    }
+                } else {
+                    // Authenticated + onboarded — show main app
+                    MainTabView()
+                        .environment(authState)
+                }
             } else {
                 // Not authenticated - show sign in
                 SignInView()
@@ -92,6 +116,7 @@ struct AppRouterView: View {
         }
         .animation(VerbioAnimations.Spring.smooth, value: authState.isAuthenticated)
         .animation(VerbioAnimations.Spring.smooth, value: authState.isCheckingAuth)
+        .animation(VerbioAnimations.Spring.smooth, value: hasSeenOnboarding)
         .task {
             await authState.checkAuthStatus()
         }
@@ -99,20 +124,21 @@ struct AppRouterView: View {
 
     private var splashView: some View {
         ZStack {
-            Color(hex: "FFFEF7")
+            colors.backgrounds.primary
                 .ignoresSafeArea()
 
             VStack(spacing: 16) {
-                Image(systemName: "waveform.circle.fill")
-                    .font(.system(size: 80, weight: .regular))
-                    .foregroundColor(Color(hex: "F59E0B"))
+                Image("VerbioLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
 
                 ProgressView()
-                    .tint(Color(hex: "F59E0B"))
+                    .tint(colors.brand.primary)
 
                 Text("Loading...")
                     .font(.caption)
-                    .foregroundColor(Color(hex: "57534E"))
+                    .foregroundColor(colors.text.secondary)
             }
         }
     }
@@ -150,7 +176,7 @@ struct MainTabView: View {
             ConversationListView()
                 .tag(AppRoute.history)
                 .tabItem {
-                    Label("History", systemImage: "clock.fill")
+                    Label("Conversations", systemImage: "bubble.left.and.bubble.right.fill")
                 }
 
             // Saved Phrases screen

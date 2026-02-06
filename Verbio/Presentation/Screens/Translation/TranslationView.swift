@@ -112,32 +112,32 @@ struct TranslationView: View {
         switch viewModel.state {
         case .idle, .translated:
             return [
-                VerbioColors.Primary.amber400.opacity(0.08),
-                VerbioColors.Accent.warmOrange.opacity(0.04),
+                VerbioColors.Gradient.brandDark.opacity(0.08),
+                VerbioColors.Gradient.charcoalLight.opacity(0.04),
                 Color.clear
             ]
         case .recording:
             return [
                 VerbioColors.Semantic.error.opacity(0.12),
-                VerbioColors.Accent.warmOrange.opacity(0.08),
+                VerbioColors.Gradient.warmGold.opacity(0.08),
                 Color.clear
             ]
         case .processing:
             return [
                 VerbioColors.Primary.amber600.opacity(0.1),
-                VerbioColors.Primary.amber400.opacity(0.06),
+                VerbioColors.Gradient.charcoalLight.opacity(0.06),
                 Color.clear
             ]
         case .playing:
             return [
-                VerbioColors.Semantic.success.opacity(0.08),
-                VerbioColors.Primary.amber400.opacity(0.04),
+                VerbioColors.Gradient.brandLight.opacity(0.08),
+                VerbioColors.Gradient.brandDark.opacity(0.04),
                 Color.clear
             ]
         case .error:
             return [
                 VerbioColors.Semantic.error.opacity(0.1),
-                Color.clear,
+                VerbioColors.Gradient.charcoalDark.opacity(0.05),
                 Color.clear
             ]
         }
@@ -148,7 +148,7 @@ struct TranslationView: View {
         case .idle, .translated: return VerbioColors.Primary.amber500
         case .recording: return VerbioColors.Semantic.error
         case .processing: return VerbioColors.Primary.amber600
-        case .playing: return VerbioColors.Semantic.success
+        case .playing: return VerbioColors.Gradient.brandLight
         case .error: return VerbioColors.Semantic.error
         }
     }
@@ -346,14 +346,18 @@ struct TranslationView: View {
         }
         .padding(.horizontal, VerbioSpacing.sm)
         .padding(.vertical, VerbioSpacing.xs)
-        .background {
-            if #available(iOS 26.0, *) {
-                Capsule()
-                    .glassEffect(.regular.tint(VerbioGlass.warmTint))
-            } else {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-            }
+        .modifier(CapsuleGlassModifier())
+    }
+}
+
+private struct CapsuleGlassModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(.regular.tint(VerbioGlass.warmTint), in: .capsule)
+        } else {
+            content
+                .background(.ultraThinMaterial, in: Capsule())
         }
     }
 }

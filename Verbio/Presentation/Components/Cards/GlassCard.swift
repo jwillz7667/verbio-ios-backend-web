@@ -39,18 +39,49 @@ struct GlassCard<Content: View>: View {
     }
 
     var body: some View {
-        content
-            .verbioCardPadding()
-            .background {
-                cardBackground
-            }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .shadow(
-                color: shadowColor,
-                radius: shadowRadius,
-                x: 0,
-                y: shadowY
-            )
+        if #available(iOS 26.0, *) {
+            content
+                .verbioCardPadding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .glassEffect(.regular.tint(glassTint), in: .rect(cornerRadius: cornerRadius))
+                .shadow(
+                    color: shadowColor,
+                    radius: shadowRadius,
+                    x: 0,
+                    y: shadowY
+                )
+        } else {
+            content
+                .verbioCardPadding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(fallbackMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
+                .shadow(
+                    color: shadowColor,
+                    radius: shadowRadius,
+                    x: 0,
+                    y: shadowY
+                )
+        }
+    }
+
+    private var glassTint: Color {
+        switch style {
+        case .standard: return VerbioGlass.warmTint
+        case .elevated: return VerbioGlass.amberTint
+        case .subtle: return VerbioGlass.warmTint
+        }
+    }
+
+    @available(iOS, deprecated: 26.0, message: "Use glassEffect on iOS 26+")
+    private var fallbackMaterial: some ShapeStyle {
+        switch style {
+        case .standard:
+            return .thinMaterial
+        case .elevated:
+            return .regularMaterial
+        case .subtle:
+            return .ultraThinMaterial
+        }
     }
 
     private var shadowColor: Color {
@@ -77,50 +108,6 @@ struct GlassCard<Content: View>: View {
         case .standard: return 2
         case .elevated: return 4
         case .subtle: return 1
-        }
-    }
-
-    @ViewBuilder
-    private var cardBackground: some View {
-        switch style {
-        case .standard:
-            if #available(iOS 26.0, *) {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .glassEffect(.regular.tint(VerbioGlass.warmTint))
-            } else {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(colors.backgrounds.elevated.opacity(0.85))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .fill(.thinMaterial)
-                    )
-            }
-
-        case .elevated:
-            if #available(iOS 26.0, *) {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .glassEffect(.regular.tint(VerbioGlass.amberTint))
-            } else {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(colors.backgrounds.elevated.opacity(0.9))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .fill(.regularMaterial)
-                    )
-            }
-
-        case .subtle:
-            if #available(iOS 26.0, *) {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .glassEffect(.regular.tint(VerbioGlass.warmTint))
-            } else {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(colors.backgrounds.elevated.opacity(0.6))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .fill(.ultraThinMaterial)
-                    )
-            }
         }
     }
 }
@@ -155,42 +142,32 @@ struct InteractiveGlassCard<Content: View>: View {
 
     var body: some View {
         Button(action: action) {
-            content
-                .verbioCardPadding()
-                .background {
-                    cardBackground
-                }
-                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                .shadow(
-                    color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06),
-                    radius: isPressed ? 4 : 8,
-                    x: 0,
-                    y: isPressed ? 1 : 2
-                )
-                .scaleEffect(isPressed ? 0.98 : 1.0)
-                .animation(VerbioAnimations.buttonPress, value: isPressed)
+            if #available(iOS 26.0, *) {
+                content
+                    .verbioCardPadding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .glassEffect(.regular.tint(VerbioGlass.warmTint).interactive(), in: .rect(cornerRadius: cornerRadius))
+            } else {
+                content
+                    .verbioCardPadding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
+            }
         }
         .buttonStyle(.plain)
+        .shadow(
+            color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06),
+            radius: isPressed ? 4 : 8,
+            x: 0,
+            y: isPressed ? 1 : 2
+        )
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .animation(VerbioAnimations.buttonPress, value: isPressed)
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in isPressed = true }
                 .onEnded { _ in isPressed = false }
         )
-    }
-
-    @ViewBuilder
-    private var cardBackground: some View {
-        if #available(iOS 26.0, *) {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .glassEffect(.regular.tint(VerbioGlass.warmTint).interactive())
-        } else {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(colors.backgrounds.elevated.opacity(0.85))
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(.thinMaterial)
-                )
-        }
     }
 }
 

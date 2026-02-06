@@ -88,15 +88,17 @@ struct SignInView: View {
 
     private var brandingSection: some View {
         VStack(spacing: VerbioSpacing.lg) {
-            // App icon/logo placeholder
+            // App logo with glow
             ZStack {
                 Circle()
                     .fill(colors.brand.primary.opacity(0.15))
-                    .frame(width: 120, height: 120)
+                    .frame(width: 140, height: 140)
+                    .blur(radius: 20)
 
-                Image(systemName: "waveform.circle.fill")
-                    .font(.system(size: 64, weight: .regular))
-                    .foregroundStyle(colors.brand.primary)
+                Image("VerbioLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 120, height: 120)
             }
 
             VStack(spacing: VerbioSpacing.sm) {

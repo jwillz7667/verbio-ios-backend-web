@@ -223,7 +223,7 @@ struct CompactTranslationCard: View {
 
 #Preview {
     ZStack {
-        Color(hex: "FFFEF7")
+        VerbioColors.Background.cream
             .ignoresSafeArea()
 
         ScrollView {

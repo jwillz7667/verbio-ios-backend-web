@@ -4,7 +4,7 @@
 //
 //  Warm amber design system with AAA accessible contrast ratios
 //  Light: Cream background (#FFFEF7) with warm stone text
-//  Dark: Stone background (#1C1917) with cream text
+//  Dark: System black background (#000000) with cream text
 //
 
 import SwiftUI
@@ -17,16 +17,16 @@ enum VerbioColors {
 
     enum Primary {
         /// Amber 400 - Used for accents in dark mode
-        static let amber400 = Color(hex: "FBBF24")
+        static let amber400 = Color(hex: "FABF24")
 
         /// Amber 500 - Primary brand color
-        static let amber500 = Color(hex: "F59E0B")
+        static let amber500 = Color(hex: "FABF24")
 
         /// Amber 600 - Pressed/active states
-        static let amber600 = Color(hex: "D97706")
+        static let amber600 = Color(hex: "E5AB10")
 
         /// Amber 700 - Deep amber for emphasis
-        static let amber700 = Color(hex: "B45309")
+        static let amber700 = Color(hex: "C4900E")
     }
 
     // MARK: - Accent Palette (Warm Orange)
@@ -53,8 +53,8 @@ enum VerbioColors {
         static let stone500 = Color(hex: "78716C")
         static let stone600 = Color(hex: "57534E")
         static let stone700 = Color(hex: "44403C")
-        static let stone800 = Color(hex: "292524")
-        static let stone900 = Color(hex: "1C1917")
+        static let stone800 = Color(hex: "2B2A27")
+        static let stone900 = Color(hex: "2B2A27")
     }
 
     // MARK: - Semantic Colors
@@ -72,14 +72,33 @@ enum VerbioColors {
         /// Warm cream for light mode - #FFFEF7
         static let cream = Color(hex: "FFFEF7")
 
-        /// Deep stone for dark mode - #1C1917
-        static let stone = Color(hex: "1C1917")
+        /// System black for dark mode - #000000
+        static let stone = Color.black
 
         /// Elevated surface light
         static let elevatedLight = Color.white
 
-        /// Elevated surface dark
-        static let elevatedDark = Color(hex: "292524")
+        /// Elevated surface dark (iOS system dark elevated)
+        static let elevatedDark = Color(hex: "1C1C1E")
+    }
+
+    // MARK: - Gradient Colors
+
+    enum Gradient {
+        /// Brand gold light
+        static let brandLight = Color(hex: "FABF24")
+
+        /// Brand gold dark
+        static let brandDark = Color(hex: "E5AB10")
+
+        /// Charcoal light
+        static let charcoalLight = Color(hex: "2B2A27")
+
+        /// Charcoal dark
+        static let charcoalDark = Color(hex: "1F1E1C")
+
+        /// Warm gold for accents
+        static let warmGold = Color(hex: "D4960D")
     }
 }
 

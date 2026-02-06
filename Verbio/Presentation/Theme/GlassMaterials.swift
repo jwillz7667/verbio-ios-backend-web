@@ -115,22 +115,16 @@ struct GlassCardContainer<Content: View>: View {
     }
 
     var body: some View {
-        content
-            .verbioCardPadding()
-            .background {
-                glassBackground
-            }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-    }
-
-    @ViewBuilder
-    private var glassBackground: some View {
         if #available(iOS 26.0, *) {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .glassEffect(.regular.tint(VerbioGlass.warmTint))
+            content
+                .verbioCardPadding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .glassEffect(.regular.tint(VerbioGlass.warmTint), in: .rect(cornerRadius: cornerRadius))
         } else {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(.thinMaterial)
+            content
+                .verbioCardPadding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
         }
     }
 }
@@ -154,25 +148,20 @@ struct GlassButtonContainer<Content: View>: View {
     }
 
     var body: some View {
-        content
-            .padding(.horizontal, VerbioSpacing.lg)
-            .padding(.vertical, VerbioSpacing.md)
-            .background {
-                glassBackground
-            }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .scaleEffect(isPressed ? 0.97 : 1.0)
-            .animation(VerbioAnimations.buttonPress, value: isPressed)
-    }
-
-    @ViewBuilder
-    private var glassBackground: some View {
         if #available(iOS 26.0, *) {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .glassEffect(.regular.tint(VerbioGlass.amberTint).interactive())
+            content
+                .padding(.horizontal, VerbioSpacing.lg)
+                .padding(.vertical, VerbioSpacing.md)
+                .glassEffect(.regular.tint(VerbioGlass.amberTint).interactive(), in: .rect(cornerRadius: cornerRadius))
+                .scaleEffect(isPressed ? 0.97 : 1.0)
+                .animation(VerbioAnimations.buttonPress, value: isPressed)
         } else {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(.regularMaterial)
+            content
+                .padding(.horizontal, VerbioSpacing.lg)
+                .padding(.vertical, VerbioSpacing.md)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
+                .scaleEffect(isPressed ? 0.97 : 1.0)
+                .animation(VerbioAnimations.buttonPress, value: isPressed)
         }
     }
 }

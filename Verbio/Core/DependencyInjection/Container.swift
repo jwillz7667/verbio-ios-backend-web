@@ -199,6 +199,19 @@ final class DependencyContainer: @unchecked Sendable {
                 audioService: DependencyContainer.shared.resolve(AudioServiceProtocol.self)
             )
         }
+
+        // Conversation Service
+        registerSingleton(ConversationServiceProtocol.self) {
+            ConversationService(
+                conversationRepository: DependencyContainer.shared.resolve(ConversationRepositoryProtocol.self),
+                translationService: DependencyContainer.shared.resolve(TranslationServiceProtocol.self)
+            )
+        }
+
+        // StoreKit Service
+        registerSingleton(StoreKitServiceProtocol.self) {
+            StoreKitManager()
+        }
     }
 
     // MARK: - Testing Support
@@ -225,4 +238,6 @@ enum ContainerKey {
     static let translationRepository = "TranslationRepositoryProtocol"
     static let conversationRepository = "ConversationRepositoryProtocol"
     static let translationService = "TranslationServiceProtocol"
+    static let conversationService = "ConversationServiceProtocol"
+    static let storeKitService = "StoreKitServiceProtocol"
 }

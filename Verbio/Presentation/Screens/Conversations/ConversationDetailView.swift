@@ -121,15 +121,7 @@ struct ConversationDetailView: View {
         .verbioCaption()
         .padding(.horizontal, VerbioSpacing.sm)
         .padding(.vertical, VerbioSpacing.xs)
-        .background {
-            if #available(iOS 26.0, *) {
-                Capsule()
-                    .glassEffect(.regular.tint(VerbioGlass.warmTint))
-            } else {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-            }
-        }
+        .modifier(DetailCapsuleGlassModifier())
     }
 }
 
@@ -216,17 +208,11 @@ private struct MessageBubbleView: View {
                 }
             }
             .verbioCardPadding()
-            .background {
-                if #available(iOS 26.0, *) {
-                    RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.lg)
-                        .glassEffect(
-                            .regular.tint(message.isFromUser ? VerbioGlass.amberTint : VerbioGlass.warmTint)
-                        )
-                } else {
-                    RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.lg)
-                        .fill(message.isFromUser ? colors.brand.primary.opacity(0.1) : colors.backgrounds.elevated)
-                }
-            }
+            .modifier(DetailBubbleGlassModifier(
+                isFromUser: message.isFromUser,
+                cornerRadius: VerbioSpacing.CornerRadius.lg,
+                colors: colors
+            ))
             .shadow(
                 color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.04),
                 radius: 4,
@@ -235,6 +221,43 @@ private struct MessageBubbleView: View {
             )
         }
         .frame(maxWidth: .infinity, alignment: message.isFromUser ? .trailing : .leading)
+    }
+}
+
+// MARK: - Glass Modifiers
+
+private struct DetailCapsuleGlassModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(.regular.tint(VerbioGlass.warmTint), in: .capsule)
+        } else {
+            content
+                .background(.ultraThinMaterial, in: Capsule())
+        }
+    }
+}
+
+private struct DetailBubbleGlassModifier: ViewModifier {
+    let isFromUser: Bool
+    let cornerRadius: CGFloat
+    let colors: VerbioColorScheme
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(
+                    .regular.tint(isFromUser ? VerbioGlass.amberTint : VerbioGlass.warmTint),
+                    in: .rect(cornerRadius: cornerRadius)
+                )
+        } else {
+            content
+                .background(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(isFromUser ? colors.brand.primary.opacity(0.1) : colors.backgrounds.elevated)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        }
     }
 }
 

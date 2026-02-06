@@ -11,20 +11,17 @@ import Foundation
 
 enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
     case free = "FREE"
-    case basic = "BASIC"
     case pro = "PRO"
-    case enterprise = "ENTERPRISE"
+    case premium = "PREMIUM"
 
     var displayName: String {
         switch self {
         case .free:
             return "Free"
-        case .basic:
-            return "Basic"
         case .pro:
             return "Pro"
-        case .enterprise:
-            return "Enterprise"
+        case .premium:
+            return "Premium"
         }
     }
 
@@ -32,11 +29,9 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
         switch self {
         case .free:
             return 10
-        case .basic:
-            return 60
         case .pro:
             return 300
-        case .enterprise:
+        case .premium:
             return Int.max
         }
     }
@@ -45,13 +40,31 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
         switch self {
         case .free:
             return 10
-        case .basic:
-            return 50
         case .pro:
             return 200
-        case .enterprise:
+        case .premium:
             return Int.max
         }
+    }
+
+    var hasConversationMode: Bool {
+        self != .free
+    }
+
+    var hasPhraseSaving: Bool {
+        self != .free
+    }
+
+    var hasPremiumVoices: Bool {
+        self != .free
+    }
+
+    var hasOfflineMode: Bool {
+        self == .premium
+    }
+
+    var hasPriorityProcessing: Bool {
+        self == .premium
     }
 }
 

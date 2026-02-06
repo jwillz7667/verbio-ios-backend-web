@@ -206,7 +206,7 @@ struct LanguagePairSelector: View {
         var body: some View {
             ZStack {
                 LinearGradient(
-                    colors: [.blue.opacity(0.8), .purple.opacity(0.6)],
+                    colors: [VerbioColors.Gradient.charcoalLight.opacity(0.9), VerbioColors.Gradient.brandDark.opacity(0.7)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )

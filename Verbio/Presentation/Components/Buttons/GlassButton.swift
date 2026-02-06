@@ -90,30 +90,7 @@ struct GlassButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: VerbioSpacing.buttonContentSpacing) {
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: foregroundColor))
-                        .frame(width: size.iconSize, height: size.iconSize)
-                } else if let icon = icon {
-                    Image(systemName: icon)
-                        .font(.system(size: size.iconSize, weight: .semibold))
-                }
-
-                Text(title)
-                    .font(size.font)
-            }
-            .foregroundStyle(foregroundColor)
-            .padding(.horizontal, size.horizontalPadding)
-            .padding(.vertical, size.verticalPadding)
-            .frame(maxWidth: style == .primary ? .infinity : nil)
-            .background {
-                buttonBackground
-            }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-            .scaleEffect(isPressed ? 0.97 : 1.0)
-            .animation(VerbioAnimations.buttonPress, value: isPressed)
-            .opacity(isEnabled ? 1.0 : 0.5)
+            buttonContent
         }
         .buttonStyle(.plain)
         .disabled(isLoading)
@@ -122,6 +99,66 @@ struct GlassButton: View {
                 .onChanged { _ in isPressed = true }
                 .onEnded { _ in isPressed = false }
         )
+    }
+
+    @ViewBuilder
+    private var buttonContent: some View {
+        let label = HStack(spacing: VerbioSpacing.buttonContentSpacing) {
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: foregroundColor))
+                    .frame(width: size.iconSize, height: size.iconSize)
+            } else if let icon = icon {
+                Image(systemName: icon)
+                    .font(.system(size: size.iconSize, weight: .semibold))
+            }
+
+            Text(title)
+                .font(size.font)
+        }
+        .foregroundStyle(foregroundColor)
+        .padding(.horizontal, size.horizontalPadding)
+        .padding(.vertical, size.verticalPadding)
+        .frame(maxWidth: style == .primary ? .infinity : nil)
+
+        switch style {
+        case .primary:
+            if #available(iOS 26.0, *) {
+                label
+                    .background(colors.brand.primary, in: RoundedRectangle(cornerRadius: cornerRadius))
+                    .glassEffect(.regular.tint(VerbioGlass.accentTint).interactive(), in: .rect(cornerRadius: cornerRadius))
+                    .scaleEffect(isPressed ? 0.97 : 1.0)
+                    .animation(VerbioAnimations.buttonPress, value: isPressed)
+                    .opacity(isEnabled ? 1.0 : 0.5)
+            } else {
+                label
+                    .background(colors.brand.primary, in: RoundedRectangle(cornerRadius: cornerRadius))
+                    .scaleEffect(isPressed ? 0.97 : 1.0)
+                    .animation(VerbioAnimations.buttonPress, value: isPressed)
+                    .opacity(isEnabled ? 1.0 : 0.5)
+            }
+
+        case .secondary:
+            if #available(iOS 26.0, *) {
+                label
+                    .glassEffect(.regular.tint(VerbioGlass.warmTint).interactive(), in: .rect(cornerRadius: cornerRadius))
+                    .scaleEffect(isPressed ? 0.97 : 1.0)
+                    .animation(VerbioAnimations.buttonPress, value: isPressed)
+                    .opacity(isEnabled ? 1.0 : 0.5)
+            } else {
+                label
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
+                    .scaleEffect(isPressed ? 0.97 : 1.0)
+                    .animation(VerbioAnimations.buttonPress, value: isPressed)
+                    .opacity(isEnabled ? 1.0 : 0.5)
+            }
+
+        case .ghost:
+            label
+                .scaleEffect(isPressed ? 0.97 : 1.0)
+                .animation(VerbioAnimations.buttonPress, value: isPressed)
+                .opacity(isEnabled ? 1.0 : 0.5)
+        }
     }
 
     // MARK: - Computed Properties
@@ -144,33 +181,6 @@ struct GlassButton: View {
         case .large: return VerbioSpacing.CornerRadius.lg
         }
     }
-
-    @ViewBuilder
-    private var buttonBackground: some View {
-        switch style {
-        case .primary:
-            if #available(iOS 26.0, *) {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(colors.brand.primary)
-                    .glassEffect(.regular.tint(VerbioGlass.accentTint).interactive())
-            } else {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(colors.brand.primary)
-            }
-
-        case .secondary:
-            if #available(iOS 26.0, *) {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .glassEffect(.regular.tint(VerbioGlass.warmTint).interactive())
-            } else {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(.regularMaterial)
-            }
-
-        case .ghost:
-            Color.clear
-        }
-    }
 }
 
 // MARK: - Sign in with Apple Button
@@ -190,27 +200,7 @@ struct AppleSignInButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: VerbioSpacing.buttonContentSpacing) {
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: foregroundColor))
-                } else {
-                    Image(systemName: "apple.logo")
-                        .font(.system(size: 18, weight: .semibold))
-                }
-
-                Text("Sign in with Apple")
-                    .font(VerbioTypography.Scaled.labelLarge)
-            }
-            .foregroundStyle(foregroundColor)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, VerbioSpacing.lg)
-            .background {
-                background
-            }
-            .clipShape(RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.md))
-            .scaleEffect(isPressed ? 0.97 : 1.0)
-            .animation(VerbioAnimations.buttonPress, value: isPressed)
+            appleButtonContent
         }
         .buttonStyle(.plain)
         .disabled(isLoading)
@@ -221,24 +211,46 @@ struct AppleSignInButton: View {
         )
     }
 
+    @ViewBuilder
+    private var appleButtonContent: some View {
+        let label = HStack(spacing: VerbioSpacing.buttonContentSpacing) {
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: foregroundColor))
+            } else {
+                Image(systemName: "apple.logo")
+                    .font(.system(size: 18, weight: .semibold))
+            }
+
+            Text("Sign in with Apple")
+                .font(VerbioTypography.Scaled.labelLarge)
+        }
+        .foregroundStyle(foregroundColor)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, VerbioSpacing.lg)
+
+        let cr = VerbioSpacing.CornerRadius.md
+
+        if #available(iOS 26.0, *) {
+            label
+                .background(backgroundColor, in: RoundedRectangle(cornerRadius: cr))
+                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: cr))
+                .scaleEffect(isPressed ? 0.97 : 1.0)
+                .animation(VerbioAnimations.buttonPress, value: isPressed)
+        } else {
+            label
+                .background(backgroundColor, in: RoundedRectangle(cornerRadius: cr))
+                .scaleEffect(isPressed ? 0.97 : 1.0)
+                .animation(VerbioAnimations.buttonPress, value: isPressed)
+        }
+    }
+
     private var foregroundColor: Color {
         colorScheme == .light ? .white : .black
     }
 
     private var backgroundColor: Color {
         colorScheme == .light ? .black : .white
-    }
-
-    @ViewBuilder
-    private var background: some View {
-        if #available(iOS 26.0, *) {
-            RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.md)
-                .fill(backgroundColor)
-                .glassEffect(.regular.interactive())
-        } else {
-            RoundedRectangle(cornerRadius: VerbioSpacing.CornerRadius.md)
-                .fill(backgroundColor)
-        }
     }
 }
 

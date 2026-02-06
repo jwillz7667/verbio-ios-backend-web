@@ -178,6 +178,20 @@ final class DependencyContainer: @unchecked Sendable {
             )
         }
 
+        // Phrases Repository
+        registerSingleton(PhrasesRepositoryProtocol.self) {
+            PhrasesRepository(
+                networkClient: DependencyContainer.shared.resolve(NetworkClientProtocol.self)
+            )
+        }
+
+        // User Repository
+        registerSingleton(UserRepositoryProtocol.self) {
+            UserRepository(
+                networkClient: DependencyContainer.shared.resolve(NetworkClientProtocol.self)
+            )
+        }
+
         // Translation Service
         registerSingleton(TranslationServiceProtocol.self) {
             TranslationService(

@@ -79,6 +79,25 @@ export const voicePreferenceSchema = z.object({
 
 export type VoicePreferenceInput = z.infer<typeof voicePreferenceSchema>
 
+// Saved phrase create schema
+export const savedPhraseCreateSchema = z.object({
+  originalText: z.string().min(1, 'Original text is required').max(5000),
+  translatedText: z.string().min(1, 'Translated text is required').max(5000),
+  sourceLanguage: z.enum(languageCodes),
+  targetLanguage: z.enum(languageCodes),
+  isFavorite: z.boolean().optional(),
+})
+
+export type SavedPhraseCreateInput = z.infer<typeof savedPhraseCreateSchema>
+
+// Saved phrase update schema
+export const savedPhraseUpdateSchema = z.object({
+  isFavorite: z.boolean().optional(),
+  translatedText: z.string().min(1).max(5000).optional(),
+})
+
+export type SavedPhraseUpdateInput = z.infer<typeof savedPhraseUpdateSchema>
+
 // Validate request body helper
 export async function validateBody<T>(
   request: Request,

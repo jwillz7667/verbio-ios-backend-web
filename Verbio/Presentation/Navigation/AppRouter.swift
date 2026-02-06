@@ -15,6 +15,7 @@ enum AppRoute: Hashable {
     case translation
     case conversation
     case history
+    case phrases
     case settings
 }
 
@@ -130,7 +131,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            HomeView()
+            HomeView(selectedTab: $selectedTab)
                 .tag(AppRoute.home)
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
@@ -145,15 +146,22 @@ struct MainTabView: View {
                 Label("Translate", systemImage: "mic.fill")
             }
 
-            // Placeholder for History screen (Phase 2)
-            PlaceholderView(title: "History", icon: "clock.fill")
+            // History screen
+            ConversationListView()
                 .tag(AppRoute.history)
                 .tabItem {
                     Label("History", systemImage: "clock.fill")
                 }
 
-            // Placeholder for Settings screen (Phase 2)
-            PlaceholderView(title: "Settings", icon: "gear")
+            // Saved Phrases screen
+            SavedPhrasesView()
+                .tag(AppRoute.phrases)
+                .tabItem {
+                    Label("Phrases", systemImage: "bookmark.fill")
+                }
+
+            // Settings screen
+            SettingsView()
                 .tag(AppRoute.settings)
                 .tabItem {
                     Label("Settings", systemImage: "gear")

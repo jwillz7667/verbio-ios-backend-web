@@ -12,8 +12,13 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
 
+    @Binding var selectedTab: AppRoute
     @State private var viewModel = HomeViewModel()
     @State private var showingLogoutConfirmation = false
+
+    init(selectedTab: Binding<AppRoute> = .constant(.home)) {
+        _selectedTab = selectedTab
+    }
 
     var colors: VerbioColorScheme {
         VerbioColorScheme(colorScheme: colorScheme)
@@ -132,13 +137,13 @@ struct HomeView: View {
                 style: .primary,
                 size: .large
             ) {
-                // TODO: Navigate to translation screen
+                selectedTab = .translation
             }
 
             // Secondary actions
             HStack(spacing: VerbioSpacing.md) {
                 InteractiveGlassCard(action: {
-                    // TODO: Navigate to conversation mode
+                    selectedTab = .history
                 }) {
                     HStack {
                         Image(systemName: "bubble.left.and.bubble.right.fill")
@@ -160,19 +165,19 @@ struct HomeView: View {
                 }
 
                 InteractiveGlassCard(action: {
-                    // TODO: Navigate to history
+                    selectedTab = .phrases
                 }) {
                     HStack {
-                        Image(systemName: "clock.fill")
+                        Image(systemName: "bookmark.fill")
                             .font(.system(size: 20))
                             .foregroundStyle(colors.brand.primary)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("History")
+                            Text("Phrases")
                                 .verbioLabelMedium()
                                 .foregroundStyle(colors.text.primary)
 
-                            Text("Recent")
+                            Text("Saved")
                                 .verbioCaption()
                                 .foregroundStyle(colors.text.tertiary)
                         }
@@ -271,7 +276,7 @@ struct HomeView: View {
                 Spacer()
 
                 Button("See All") {
-                    // TODO: Navigate to full history
+                    selectedTab = .history
                 }
                 .verbioLabelSmall()
                 .foregroundStyle(colors.brand.primary)
@@ -375,11 +380,11 @@ private struct RecentTranslationRow: View {
 // MARK: - Preview
 
 #Preview("Home - Light") {
-    HomeView()
+    HomeView(selectedTab: .constant(.home))
         .preferredColorScheme(.light)
 }
 
 #Preview("Home - Dark") {
-    HomeView()
+    HomeView(selectedTab: .constant(.home))
         .preferredColorScheme(.dark)
 }

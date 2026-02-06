@@ -72,7 +72,7 @@ enum SubscriptionTier: String, Codable, CaseIterable, Sendable {
 
 struct User: Codable, Identifiable, Equatable, Sendable {
     let id: String
-    let appleUserId: String
+    let appleUserId: String?
     let email: String
     let firstName: String?
     let lastName: String?

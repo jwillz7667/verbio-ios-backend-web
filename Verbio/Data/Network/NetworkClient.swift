@@ -53,7 +53,18 @@ actor NetworkClient: NetworkClientProtocol {
 
         self.decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let dateString = try container.decode(String.self)
+            // Try ISO8601 with fractional seconds first (Prisma format)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            if let date = formatter.date(from: dateString) { return date }
+            // Fall back to standard ISO8601
+            formatter.formatOptions = [.withInternetDateTime]
+            if let date = formatter.date(from: dateString) { return date }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date: \(dateString)")
+        }
 
         self.encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601

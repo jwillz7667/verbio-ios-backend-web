@@ -61,9 +61,15 @@ export async function verifyAppleIdentityToken(identityToken: string): Promise<A
     const publicKey = await getApplePublicKey(header.kid)
 
     // Verify the token
+    // Accept both the iOS bundle ID and the Services ID (for web) as valid audiences
+    const validAudiences = [
+      process.env.APPLE_BUNDLE_ID || '',
+      process.env.APPLE_SERVICE_ID || '',
+    ].filter(Boolean)
+
     const { payload } = await jose.jwtVerify(identityToken, publicKey, {
       issuer: 'https://appleid.apple.com',
-      audience: process.env.APPLE_SERVICE_ID || '',
+      audience: validAudiences,
     })
 
     // Validate required claims

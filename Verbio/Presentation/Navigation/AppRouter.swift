@@ -45,22 +45,6 @@ final class AuthState {
         isCheckingAuth = true
         defer { isCheckingAuth = false }
 
-        // TEMPORARY: Bypass auth for testing
-        #if DEBUG
-        isAuthenticated = true
-        currentUser = User(
-            id: "test-user-id",
-            appleUserId: "test-apple-id",
-            email: "test@verbio.app",
-            firstName: "Test",
-            lastName: "User",
-            subscriptionTier: .free,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-        return
-        #endif
-
         isAuthenticated = await authService.checkAuthStatus()
 
         if isAuthenticated {

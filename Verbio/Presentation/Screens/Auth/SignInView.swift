@@ -11,6 +11,7 @@ import SwiftUI
 
 struct SignInView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(AuthState.self) private var authState
 
     @State private var viewModel = SignInViewModel()
 
@@ -43,6 +44,11 @@ struct SignInView: View {
         }
         .task {
             await viewModel.checkExistingAuth()
+        }
+        .onChange(of: viewModel.state) { _, newState in
+            if case .authenticated(let user) = newState {
+                authState.signIn(user: user)
+            }
         }
         .alert("Sign In Error", isPresented: showingError) {
             Button("OK") {

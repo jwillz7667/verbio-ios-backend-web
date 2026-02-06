@@ -56,7 +56,6 @@ actor NetworkClient: NetworkClientProtocol {
         decoder.dateDecodingStrategy = .iso8601
 
         self.encoder = JSONEncoder()
-        encoder.keyEncodingStrategy = .convertToSnakeCase
         encoder.dateEncodingStrategy = .iso8601
     }
 

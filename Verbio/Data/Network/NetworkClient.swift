@@ -52,7 +52,6 @@ actor NetworkClient: NetworkClientProtocol {
         self.session = URLSession(configuration: sessionConfig)
 
         self.decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)

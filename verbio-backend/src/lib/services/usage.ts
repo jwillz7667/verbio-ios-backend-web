@@ -1,7 +1,7 @@
 // Usage Tracking and Rate Limiting Service
 
 import { SubscriptionTier } from '@prisma/client'
-import { prisma } from '@/lib/db/prisma'
+import prisma from '@/lib/db/prisma'
 import { redis } from '@/lib/db/redis'
 import { RATE_LIMITS } from '@/types/translation'
 import { TooManyRequestsError } from '@/lib/errors/AppError'

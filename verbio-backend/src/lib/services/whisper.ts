@@ -83,10 +83,17 @@ export async function transcribeAudio(
     }
 
     console.error('Whisper transcription failed:', error)
+    console.error('Audio buffer size:', audioBuffer.length, 'bytes')
 
     if (error instanceof OpenAI.APIError) {
+      console.error('OpenAI API error details:', {
+        status: error.status,
+        message: error.message,
+        code: error.code,
+        type: error.type,
+      })
       if (error.status === 400) {
-        throw new BadRequestError('Invalid audio format or corrupted file')
+        throw new BadRequestError(`Invalid audio format or corrupted file: ${error.message}`)
       }
       if (error.status === 429) {
         throw new InternalServerError('Transcription service temporarily unavailable')

@@ -42,6 +42,13 @@ export async function POST(
 
     // Decode audio from base64
     const audioBuffer = decodeAudioBase64(body.audio)
+    console.log('Translation request:', {
+      userId: auth.userId,
+      audioBufferSize: audioBuffer.length,
+      sourceLanguage: body.sourceLanguage,
+      targetLanguage: body.targetLanguage,
+      speaker: body.speaker,
+    })
 
     // Step 1: Transcribe audio with Whisper
     const whisperResult = await transcribeAudio(

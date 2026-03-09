@@ -13,7 +13,12 @@ const AUTH_CONTEXT_HEADER = 'x-auth-context'
 function extractBearerToken(request: NextRequest): string | null {
   const authHeader = request.headers.get('authorization')
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader) {
+    return null
+  }
+
+  // Case-insensitive check for "Bearer " prefix
+  if (!authHeader.toLowerCase().startsWith('bearer ')) {
     return null
   }
 

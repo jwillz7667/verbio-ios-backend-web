@@ -1,4 +1,4 @@
-// GPT-4o Translation Service
+// GPT Realtime 1.5 Translation Service
 
 import OpenAI from 'openai'
 import { Language } from '@prisma/client'
@@ -11,7 +11,7 @@ const openai = new OpenAI({
 })
 
 // Translation model
-const MODEL = 'gpt-4o'
+const MODEL = 'gpt-realtime-1.5'
 
 // Temperature for consistent translations
 const TEMPERATURE = 0.3
@@ -20,7 +20,7 @@ const TEMPERATURE = 0.3
 const MAX_CONTEXT_MESSAGES = 5
 
 /**
- * Translate text using GPT-4o with optional conversation context
+ * Translate text using GPT Realtime 1.5 with optional conversation context
  * @param text Source text to translate
  * @param sourceLanguage Source language
  * @param targetLanguage Target language
@@ -59,7 +59,7 @@ export async function translateText(
       targetLanguage,
     }
   } catch (error) {
-    console.error('GPT-4o translation failed:', error)
+    console.error('GPT Realtime 1.5 translation failed:', error)
 
     if (error instanceof OpenAI.APIError) {
       if (error.status === 429) {
@@ -102,7 +102,7 @@ If context from previous messages is provided, use it to improve translation acc
 }
 
 /**
- * Build message array for GPT-4o including context
+ * Build message array for GPT Realtime 1.5 including context
  */
 function buildMessages(
   text: string,
@@ -140,7 +140,7 @@ function buildMessages(
 }
 
 /**
- * Detect the language of text using GPT-4o
+ * Detect the language of text using GPT Realtime 1.5
  * Used when source language is not specified
  */
 export async function detectLanguage(text: string): Promise<Language> {

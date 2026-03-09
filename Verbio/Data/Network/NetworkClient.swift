@@ -189,6 +189,8 @@ actor NetworkClient: NetworkClientProtocol {
 
     // MARK: - Token Refresh
 
+    private var refreshError: Error?
+
     private func refreshAccessToken() async throws {
         // Prevent multiple concurrent refresh attempts
         if isRefreshingToken {
@@ -197,6 +199,7 @@ actor NetworkClient: NetworkClientProtocol {
         }
 
         isRefreshingToken = true
+        refreshError = nil
         defer {
             isRefreshingToken = false
             resumePendingRequests()
@@ -229,10 +232,18 @@ actor NetworkClient: NetworkClientProtocol {
         guard httpResponse.statusCode == 200 else {
             // Clear tokens on refresh failure
             try? keychainService.clear()
-            throw NetworkError.unauthorized
+            let error = NetworkError.unauthorized
+            refreshError = error
+            throw error
         }
 
-        let refreshResponse = try decoder.decode(RefreshResponse.self, from: data)
+        let refreshResponse: RefreshResponse
+        do {
+            refreshResponse = try decoder.decode(RefreshResponse.self, from: data)
+        } catch {
+            refreshError = NetworkError.decodingFailed(reason: error.localizedDescription)
+            throw NetworkError.decodingFailed(reason: error.localizedDescription)
+        }
 
         // Store new tokens
         try keychainService.save(refreshResponse.accessToken, for: .accessToken)
@@ -249,7 +260,11 @@ actor NetworkClient: NetworkClientProtocol {
         let requests = pendingRequests
         pendingRequests.removeAll()
         for continuation in requests {
-            continuation.resume()
+            if let error = refreshError {
+                continuation.resume(throwing: error)
+            } else {
+                continuation.resume()
+            }
         }
     }
 }

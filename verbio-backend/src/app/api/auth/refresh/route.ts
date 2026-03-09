@@ -58,6 +58,11 @@ export async function POST(request: NextRequest): Promise<NextResponse<TokenRefr
       throw new UnauthorizedError('Refresh token has expired')
     }
 
+    // Verify the user associated with this token still exists and is active
+    if (!storedToken.user) {
+      throw new UnauthorizedError('User associated with refresh token not found')
+    }
+
     // Revoke the current token (single-use)
     await prisma.refreshToken.update({
       where: { id: storedToken.id },

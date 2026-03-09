@@ -67,6 +67,10 @@ export async function verifyAppleIdentityToken(identityToken: string): Promise<A
       process.env.APPLE_SERVICE_ID || '',
     ].filter(Boolean)
 
+    if (validAudiences.length === 0) {
+      throw new Error('No valid Apple audience configured (APPLE_BUNDLE_ID or APPLE_SERVICE_ID required)')
+    }
+
     const { payload } = await jose.jwtVerify(identityToken, publicKey, {
       issuer: 'https://appleid.apple.com',
       audience: validAudiences,
@@ -90,7 +94,8 @@ export async function verifyAppleIdentityToken(identityToken: string): Promise<A
     }
 
     console.error('Apple token verification failed:', error)
-    throw new UnauthorizedError('Invalid Apple identity token')
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    throw new UnauthorizedError(`Apple identity token verification failed: ${message}`)
   }
 }
 

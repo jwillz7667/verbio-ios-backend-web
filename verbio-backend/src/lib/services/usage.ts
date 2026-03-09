@@ -278,7 +278,7 @@ export function calculateEstimatedCost(
 ): number {
   // Pricing (approximate):
   // Whisper: $0.006 / minute
-  // GPT-4o: ~$0.01 / 1K tokens (assuming ~200 tokens per translation)
+  // GPT Realtime 1.5: ~$0.01 / 1K tokens (assuming ~200 tokens per translation)
   // ElevenLabs: ~$0.30 / 1K characters (varies by plan)
   // R2: negligible
 
